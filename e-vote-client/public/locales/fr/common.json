@@ -1,0 +1,17 @@
+{
+  "pageNotFound": "Page introuvable",
+  "pageNotFoundDescription": "La page que vous recherchez n’existe pas.",
+  "goToDashboard": "Aller au tableau de bord",
+  "goToLogin": "Aller à la connexion",
+  "dashboard": {
+    "title": "Bonjour, {{name}} !",
+    "subtitle": "Vous avez {{count}} nouvelles notifications.",
+    "actions": {
+      "refresh": "Actualiser les données",
+      "settings": "Paramètres du compte"
+    }
+  },
+  "app": {
+    "loading": "Chargement..."
+  }
+}

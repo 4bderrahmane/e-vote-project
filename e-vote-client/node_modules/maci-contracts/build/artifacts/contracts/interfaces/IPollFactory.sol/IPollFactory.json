@@ -1,0 +1,84 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IPollFactory",
+  "sourceName": "contracts/interfaces/IPollFactory.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_duration",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint8",
+              "name": "intStateTreeDepth",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "messageTreeSubDepth",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "messageTreeDepth",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "voteOptionTreeDepth",
+              "type": "uint8"
+            }
+          ],
+          "internalType": "struct Params.TreeDepths",
+          "name": "_treeDepths",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "x",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "y",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct DomainObjs.PubKey",
+          "name": "_coordinatorPubKey",
+          "type": "tuple"
+        },
+        {
+          "internalType": "address",
+          "name": "_maci",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_emptyBallotRoot",
+          "type": "uint256"
+        }
+      ],
+      "name": "deploy",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

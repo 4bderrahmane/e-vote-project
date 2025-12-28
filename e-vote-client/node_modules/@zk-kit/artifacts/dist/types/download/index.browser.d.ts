@@ -1,0 +1,6 @@
+import { type Project } from '../projects';
+import type { SnarkArtifacts, Version } from './types';
+export default function maybeGetSnarkArtifacts(project: Project, options?: {
+    parameters?: (bigint | number | string)[];
+    version?: Version;
+}): Promise<SnarkArtifacts>;

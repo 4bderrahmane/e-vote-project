@@ -1,0 +1,235 @@
+/* Elections page styling (simple, dashboard-friendly) */
+
+.elections-page {
+  min-height: calc(100vh - 64px);
+  padding: 1.5rem 1rem 2.5rem;
+  background: linear-gradient(180deg, rgba(249, 250, 251, 0.9) 0%, #ffffff 100%);
+}
+
+.elections-header {
+  max-width: 1100px;
+  margin: 0 auto 1rem auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.elections-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.elections-subtitle {
+  margin: 0.35rem 0 0 0;
+  color: #6b7280;
+  line-height: 1.35;
+}
+
+.elections-toolbar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.elections-search {
+  width: min(360px, 80vw);
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: #fff;
+  outline: none;
+}
+
+.elections-search:focus {
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.elections-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+}
+
+.election-card {
+  grid-column: span 12;
+  background: #fff;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
+  padding: 1.1rem 1.1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+@media (min-width: 720px) {
+  .election-card {
+    grid-column: span 6;
+  }
+}
+
+@media (min-width: 1024px) {
+  .election-card {
+    grid-column: span 4;
+  }
+}
+
+.election-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.election-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.election-meta {
+  margin: 0.35rem 0 0 0;
+  color: #6b7280;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.election-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  color: #111827;
+  background: rgba(249, 250, 251, 0.8);
+}
+
+.badge-open {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.35);
+  color: #166534;
+}
+
+.badge-closed {
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.32);
+  color: #7f1d1d;
+}
+
+.badge-upcoming {
+  background: rgba(59, 130, 246, 0.10);
+  border-color: rgba(59, 130, 246, 0.32);
+  color: #1e3a8a;
+}
+
+.election-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.election-stats {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.stat {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.stat-label {
+  color: #6b7280;
+}
+
+.election-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.primary-button {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  background: #1e3a8a;
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  transition: transform 0.05s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 8px 18px rgba(30, 58, 138, 0.18);
+}
+
+.primary-button:hover {
+  background: #1d4ed8;
+}
+
+.primary-button:active {
+  transform: translateY(1px);
+}
+
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+.secondary-button {
+  appearance: none;
+  border: 1px solid rgba(17, 24, 39, 0.14);
+  cursor: pointer;
+  background: #ffffff;
+  color: #111827;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+}
+
+.secondary-button:hover {
+  background: rgba(249, 250, 251, 0.9);
+}
+
+.placeholder-state {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px dashed rgba(17, 24, 39, 0.18);
+  border-radius: 14px;
+  padding: 1.2rem;
+  color: #374151;
+}
+
+.placeholder-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.small-muted {
+  color: #6b7280;
+  font-size: 0.92rem;
+}
+

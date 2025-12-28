@@ -1,0 +1,190 @@
+import { ContractFactory, ContractTransactionResponse } from "ethers";
+import type { Signer, BigNumberish, AddressLike, ContractDeployTransaction, ContractRunner } from "ethers";
+import type { PayableOverrides } from "../../../common";
+import type { SemaphoreGatekeeper, SemaphoreGatekeeperInterface } from "../../../contracts/gatekeepers/SemaphoreGatekeeper";
+type SemaphoreGatekeeperConstructorParams = [signer?: Signer] | ConstructorParameters<typeof ContractFactory>;
+export declare class SemaphoreGatekeeper__factory extends ContractFactory {
+    constructor(...args: SemaphoreGatekeeperConstructorParams);
+    getDeployTransaction(_semaphoreContract: AddressLike, _groupId: BigNumberish, overrides?: PayableOverrides & {
+        from?: string;
+    }): Promise<ContractDeployTransaction>;
+    deploy(_semaphoreContract: AddressLike, _groupId: BigNumberish, overrides?: PayableOverrides & {
+        from?: string;
+    }): Promise<SemaphoreGatekeeper & {
+        deploymentTransaction(): ContractTransactionResponse;
+    }>;
+    connect(runner: ContractRunner | null): SemaphoreGatekeeper__factory;
+    static readonly bytecode = "0x60c0604052604051610922380380610922833981016040819052610022916100df565b338061004857604051631e4fbdf760e01b81526000600482015260240160405180910390fd5b6100518161008f565b506001600160a01b0382166100795760405163d92e233d60e01b815260040160405180910390fd5b6001600160a01b0390911660a052608052610119565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b600080604083850312156100f257600080fd5b82516001600160a01b038116811461010957600080fd5b6020939093015192949293505050565b60805160a0516107d761014b6000396000818160a8015261032601526000818161017301526102ab01526107d76000f3fe608060405234801561001057600080fd5b506004361061009e5760003560e01c8063715018a611610066578063715018a6146101555780638da5cb5b1461015d578063a0f44c921461016e578063cea9a263146101a3578063f2fde38b146101ce57600080fd5b8063028091ed146100a357806311eeaf08146100e757806313e65cf31461011a57806324b8fbf61461012f57806334a0922c14610142575b600080fd5b6100ca7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020015b60405180910390f35b61010a6100f5366004610493565b60026020526000908152604090205460ff1681565b60405190151581526020016100de565b61012d6101283660046104c8565b6101e1565b005b61012d61013d36600461057e565b610232565b6001546100ca906001600160a01b031681565b61012d6103bf565b6000546001600160a01b03166100ca565b6101957f000000000000000000000000000000000000000000000000000000000000000081565b6040519081526020016100de565b604080518082018252600981526853656d6170686f726560b81b602082015290516100de9190610624565b61012d6101dc3660046104c8565b6103d3565b6101e9610416565b6001600160a01b0381166102105760405163d92e233d60e01b815260040160405180910390fd5b600180546001600160a01b0319166001600160a01b0392909216919091179055565b6000818060200190518101906102489190610672565b6001549091506001600160a01b0316331461027657604051630346d90560e21b815260040160405180910390fd5b60408082015160009081526002602052205460ff16156102a957604051630ea075bf60e21b815260040160405180910390fd5b7f00000000000000000000000000000000000000000000000000000000000000008160800151146102ed5760405163036c503960e61b815260040160405180910390fd5b60408082015160009081526002602052819020805460ff19166001179055608082015190516308ade83160e31b81526001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000169163456f41889161035c91908590600401610710565b602060405180830381865afa158015610379573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061039d919061077f565b6103ba576040516309bde33960e01b815260040160405180910390fd5b505050565b6103c7610416565b6103d16000610443565b565b6103db610416565b6001600160a01b03811661040a57604051631e4fbdf760e01b8152600060048201526024015b60405180910390fd5b61041381610443565b50565b6000546001600160a01b031633146103d15760405163118cdaa760e01b8152336004820152602401610401565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b6000602082840312156104a557600080fd5b5035919050565b80356001600160a01b03811681146104c357600080fd5b919050565b6000602082840312156104da57600080fd5b6104e3826104ac565b9392505050565b634e487b7160e01b600052604160045260246000fd5b60405160c0810167ffffffffffffffff81118282101715610523576105236104ea565b60405290565b604051610100810167ffffffffffffffff81118282101715610523576105236104ea565b604051601f8201601f1916810167ffffffffffffffff81118282101715610576576105766104ea565b604052919050565b6000806040838503121561059157600080fd5b61059a836104ac565b915060208084013567ffffffffffffffff808211156105b857600080fd5b818601915086601f8301126105cc57600080fd5b8135818111156105de576105de6104ea565b6105f0601f8201601f1916850161054d565b9150808252878482850101111561060657600080fd5b80848401858401376000848284010152508093505050509250929050565b600060208083528351808285015260005b8181101561065157858101830151858201604001528201610635565b506000604082860101526040601f19601f8301168501019250505092915050565b60006101a080838503121561068657600080fd5b61068e610500565b83518152602080850151818301526040850151604083015260608501516060830152608085015160808301528560bf8601126106c957600080fd5b6106d1610529565b9285019280878511156106e357600080fd5b60a087015b858110156106ff57805183529183019183016106e8565b5060a0840152509095945050505050565b60006101c08201905083825260208351818401528084015160408401526040840151606084015260608401516080840152608084015160a084015260a084015160c0840160005b600881101561077457825182529183019190830190600101610757565b505050509392505050565b60006020828403121561079157600080fd5b815180151581146104e357600080fdfea26469706673582212203411e48e838ad70a1c249e0e1bffd6a023cddc04610f79aef9428bc3d44df42464736f6c63430008140033";
+    static readonly abi: readonly [{
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "_semaphoreContract";
+            readonly type: "address";
+        }, {
+            readonly internalType: "uint256";
+            readonly name: "_groupId";
+            readonly type: "uint256";
+        }];
+        readonly stateMutability: "payable";
+        readonly type: "constructor";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "AlreadyRegistered";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "InvalidGroup";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "InvalidProof";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "OnlyMACI";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "owner";
+            readonly type: "address";
+        }];
+        readonly name: "OwnableInvalidOwner";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "account";
+            readonly type: "address";
+        }];
+        readonly name: "OwnableUnauthorizedAccount";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "ZeroAddress";
+        readonly type: "error";
+    }, {
+        readonly anonymous: false;
+        readonly inputs: readonly [{
+            readonly indexed: true;
+            readonly internalType: "address";
+            readonly name: "previousOwner";
+            readonly type: "address";
+        }, {
+            readonly indexed: true;
+            readonly internalType: "address";
+            readonly name: "newOwner";
+            readonly type: "address";
+        }];
+        readonly name: "OwnershipTransferred";
+        readonly type: "event";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "getTrait";
+        readonly outputs: readonly [{
+            readonly internalType: "string";
+            readonly name: "";
+            readonly type: "string";
+        }];
+        readonly stateMutability: "pure";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "groupId";
+        readonly outputs: readonly [{
+            readonly internalType: "uint256";
+            readonly name: "";
+            readonly type: "uint256";
+        }];
+        readonly stateMutability: "view";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "maci";
+        readonly outputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "";
+            readonly type: "address";
+        }];
+        readonly stateMutability: "view";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "owner";
+        readonly outputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "";
+            readonly type: "address";
+        }];
+        readonly stateMutability: "view";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "";
+            readonly type: "address";
+        }, {
+            readonly internalType: "bytes";
+            readonly name: "_data";
+            readonly type: "bytes";
+        }];
+        readonly name: "register";
+        readonly outputs: readonly [];
+        readonly stateMutability: "nonpayable";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "uint256";
+            readonly name: "";
+            readonly type: "uint256";
+        }];
+        readonly name: "registeredIdentities";
+        readonly outputs: readonly [{
+            readonly internalType: "bool";
+            readonly name: "";
+            readonly type: "bool";
+        }];
+        readonly stateMutability: "view";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "renounceOwnership";
+        readonly outputs: readonly [];
+        readonly stateMutability: "nonpayable";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "semaphoreContract";
+        readonly outputs: readonly [{
+            readonly internalType: "contract ISemaphore";
+            readonly name: "";
+            readonly type: "address";
+        }];
+        readonly stateMutability: "view";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "_maci";
+            readonly type: "address";
+        }];
+        readonly name: "setMaciInstance";
+        readonly outputs: readonly [];
+        readonly stateMutability: "nonpayable";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "newOwner";
+            readonly type: "address";
+        }];
+        readonly name: "transferOwnership";
+        readonly outputs: readonly [];
+        readonly stateMutability: "nonpayable";
+        readonly type: "function";
+    }];
+    static createInterface(): SemaphoreGatekeeperInterface;
+    static connect(address: string, runner?: ContractRunner | null): SemaphoreGatekeeper;
+}
+export {};
+//# sourceMappingURL=SemaphoreGatekeeper__factory.d.ts.map

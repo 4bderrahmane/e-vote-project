@@ -1,0 +1,12 @@
+{
+  "dashboard": "Tableau de bord",
+  "applications": "Candidatures",
+  "elections": "Élections",
+  "results": "Résultats",
+  "myVotes": "Mes votes",
+  "profile": "Profil",
+  "settings": "Paramètres",
+  "logout": "Déconnexion",
+  "login": "Connexion",
+  "register": "Inscription"
+}

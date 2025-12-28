@@ -1,0 +1,194 @@
+import { ContractFactory, ContractTransactionResponse } from "ethers";
+import type { Signer, BigNumberish, AddressLike, ContractDeployTransaction, ContractRunner } from "ethers";
+import type { PayableOverrides } from "../../../common";
+import type { HatsGatekeeperMultiple, HatsGatekeeperMultipleInterface } from "../../../contracts/gatekeepers/HatsGatekeeperMultiple";
+type HatsGatekeeperMultipleConstructorParams = [signer?: Signer] | ConstructorParameters<typeof ContractFactory>;
+export declare class HatsGatekeeperMultiple__factory extends ContractFactory {
+    constructor(...args: HatsGatekeeperMultipleConstructorParams);
+    getDeployTransaction(_hats: AddressLike, _criterionHats: BigNumberish[], overrides?: PayableOverrides & {
+        from?: string;
+    }): Promise<ContractDeployTransaction>;
+    deploy(_hats: AddressLike, _criterionHats: BigNumberish[], overrides?: PayableOverrides & {
+        from?: string;
+    }): Promise<HatsGatekeeperMultiple & {
+        deploymentTransaction(): ContractTransactionResponse;
+    }>;
+    connect(runner: ContractRunner | null): HatsGatekeeperMultiple__factory;
+    static readonly bytecode = "0x60a06040526040516108d13803806108d18339810160408190526100229161012f565b81338061004957604051631e4fbdf760e01b81526000600482015260240160405180910390fd5b610052816100c9565b506001600160a01b031660805260005b81518110156100c1576001600360008484815181106100835761008361020f565b6020026020010151815260200190815260200160002060006101000a81548160ff021916908315150217905550806100ba90610225565b9050610062565b50505061024c565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b634e487b7160e01b600052604160045260246000fd5b6000806040838503121561014257600080fd5b82516001600160a01b038116811461015957600080fd5b602084810151919350906001600160401b038082111561017857600080fd5b818601915086601f83011261018c57600080fd5b81518181111561019e5761019e610119565b8060051b604051601f19603f830116810181811085821117156101c3576101c3610119565b6040529182528482019250838101850191898311156101e157600080fd5b938501935b828510156101ff578451845293850193928501926101e6565b8096505050505050509250929050565b634e487b7160e01b600052603260045260246000fd5b60006001820161024557634e487b7160e01b600052601160045260246000fd5b5060010190565b60805161066361026e6000396000818161018d015261031201526106636000f3fe608060405234801561001057600080fd5b506004361061009e5760003560e01c8063b2dd5c0711610066578063b2dd5c0714610114578063cea9a26314610147578063f2fde38b14610175578063f99f023814610188578063fb01269b146101af57600080fd5b806313e65cf3146100a357806324b8fbf6146100b857806334a0922c146100cb578063715018a6146100fb5780638da5cb5b14610103575b600080fd5b6100b66100b1366004610491565b6101d2565b005b6100b66100c63660046104c9565b610223565b6001546100de906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b6100b66103a1565b6000546001600160a01b03166100de565b610137610122366004610491565b60026020526000908152604090205460ff1681565b60405190151581526020016100f2565b604080518082018252600c81526b486174734d756c7469706c6560a01b602082015290516100f2919061058b565b6100b6610183366004610491565b6103b5565b6100de7f000000000000000000000000000000000000000000000000000000000000000081565b6101376101bd3660046105d9565b60036020526000908152604090205460ff1681565b6101da6103f8565b6001600160a01b0381166102015760405163d92e233d60e01b815260040160405180910390fd5b600180546001600160a01b0319166001600160a01b0392909216919091179055565b6001546001600160a01b0316331461024e57604051630346d90560e21b815260040160405180910390fd5b6001600160a01b03821660009081526002602052604090205460ff161561028857604051630ea075bf60e21b815260040160405180910390fd5b60008180602001905181019061029e91906105f2565b60008181526003602052604090205490915060ff166102d057604051632f76bd0160e21b815260040160405180910390fd5b6001600160a01b0383811660008181526002602052604090819020805460ff19166001179055516321a9204d60e11b81526004810191909152602481018390527f000000000000000000000000000000000000000000000000000000000000000090911690634352409a90604401602060405180830381865afa15801561035b573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061037f919061060b565b61039c576040516306fdb0d360e31b815260040160405180910390fd5b505050565b6103a96103f8565b6103b36000610425565b565b6103bd6103f8565b6001600160a01b0381166103ec57604051631e4fbdf760e01b8152600060048201526024015b60405180910390fd5b6103f581610425565b50565b6000546001600160a01b031633146103b35760405163118cdaa760e01b81523360048201526024016103e3565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b80356001600160a01b038116811461048c57600080fd5b919050565b6000602082840312156104a357600080fd5b6104ac82610475565b9392505050565b634e487b7160e01b600052604160045260246000fd5b600080604083850312156104dc57600080fd5b6104e583610475565b9150602083013567ffffffffffffffff8082111561050257600080fd5b818501915085601f83011261051657600080fd5b813581811115610528576105286104b3565b604051601f8201601f19908116603f01168101908382118183101715610550576105506104b3565b8160405282815288602084870101111561056957600080fd5b8260208601602083013760006020848301015280955050505050509250929050565b600060208083528351808285015260005b818110156105b85785810183015185820160400152820161059c565b506000604082860101526040601f19601f8301168501019250505092915050565b6000602082840312156105eb57600080fd5b5035919050565b60006020828403121561060457600080fd5b5051919050565b60006020828403121561061d57600080fd5b815180151581146104ac57600080fdfea26469706673582212200933bbe4ed5c0f09c5fd54ab3a4a12a4a28a3a7b518e98d47380e1add4267ad264736f6c63430008140033";
+    static readonly abi: readonly [{
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "_hats";
+            readonly type: "address";
+        }, {
+            readonly internalType: "uint256[]";
+            readonly name: "_criterionHats";
+            readonly type: "uint256[]";
+        }];
+        readonly stateMutability: "payable";
+        readonly type: "constructor";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "AlreadyRegistered";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "NotCriterionHat";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "NotWearingCriterionHat";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "OnlyMACI";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "owner";
+            readonly type: "address";
+        }];
+        readonly name: "OwnableInvalidOwner";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "account";
+            readonly type: "address";
+        }];
+        readonly name: "OwnableUnauthorizedAccount";
+        readonly type: "error";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "ZeroAddress";
+        readonly type: "error";
+    }, {
+        readonly anonymous: false;
+        readonly inputs: readonly [{
+            readonly indexed: true;
+            readonly internalType: "address";
+            readonly name: "previousOwner";
+            readonly type: "address";
+        }, {
+            readonly indexed: true;
+            readonly internalType: "address";
+            readonly name: "newOwner";
+            readonly type: "address";
+        }];
+        readonly name: "OwnershipTransferred";
+        readonly type: "event";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "uint256";
+            readonly name: "";
+            readonly type: "uint256";
+        }];
+        readonly name: "criterionHat";
+        readonly outputs: readonly [{
+            readonly internalType: "bool";
+            readonly name: "";
+            readonly type: "bool";
+        }];
+        readonly stateMutability: "view";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "getTrait";
+        readonly outputs: readonly [{
+            readonly internalType: "string";
+            readonly name: "";
+            readonly type: "string";
+        }];
+        readonly stateMutability: "pure";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "hats";
+        readonly outputs: readonly [{
+            readonly internalType: "contract IHats";
+            readonly name: "";
+            readonly type: "address";
+        }];
+        readonly stateMutability: "view";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "maci";
+        readonly outputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "";
+            readonly type: "address";
+        }];
+        readonly stateMutability: "view";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "owner";
+        readonly outputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "";
+            readonly type: "address";
+        }];
+        readonly stateMutability: "view";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "_user";
+            readonly type: "address";
+        }, {
+            readonly internalType: "bytes";
+            readonly name: "_data";
+            readonly type: "bytes";
+        }];
+        readonly name: "register";
+        readonly outputs: readonly [];
+        readonly stateMutability: "nonpayable";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "";
+            readonly type: "address";
+        }];
+        readonly name: "registered";
+        readonly outputs: readonly [{
+            readonly internalType: "bool";
+            readonly name: "";
+            readonly type: "bool";
+        }];
+        readonly stateMutability: "view";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [];
+        readonly name: "renounceOwnership";
+        readonly outputs: readonly [];
+        readonly stateMutability: "nonpayable";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "_maci";
+            readonly type: "address";
+        }];
+        readonly name: "setMaciInstance";
+        readonly outputs: readonly [];
+        readonly stateMutability: "nonpayable";
+        readonly type: "function";
+    }, {
+        readonly inputs: readonly [{
+            readonly internalType: "address";
+            readonly name: "newOwner";
+            readonly type: "address";
+        }];
+        readonly name: "transferOwnership";
+        readonly outputs: readonly [];
+        readonly stateMutability: "nonpayable";
+        readonly type: "function";
+    }];
+    static createInterface(): HatsGatekeeperMultipleInterface;
+    static connect(address: string, runner?: ContractRunner | null): HatsGatekeeperMultiple;
+}
+export {};
+//# sourceMappingURL=HatsGatekeeperMultiple__factory.d.ts.map

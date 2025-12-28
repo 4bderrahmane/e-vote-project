@@ -1,0 +1,76 @@
+.dashboard-page {
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.dashboard-card {
+    width: 100%;
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    padding: 1.75rem 1.5rem;
+}
+
+.dashboard-title {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: #111827;
+}
+
+.dashboard-subtitle {
+    text-align: center;
+    margin: 0 0 1.25rem 0;
+    color: #6b7280;
+    line-height: 1.35;
+}
+
+.dashboard-subtitle strong {
+    color: #1e3a8a;
+    font-weight: 700;
+}
+
+.dashboard-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.25rem;
+}
+
+.dashboard-button {
+    appearance: none;
+    border: none;
+    cursor: pointer;
+    background: #1e3a8a;
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0.75rem 1.25rem;
+    transition: transform 0.05s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 8px 18px rgba(30, 58, 138, 0.22);
+}
+
+.dashboard-button:hover {
+    background: #1d4ed8;
+}
+
+.dashboard-button:active {
+    transform: translateY(1px);
+}
+
+.dashboard-button:focus-visible {
+    outline: 3px solid rgba(59, 130, 246, 0.45);
+    outline-offset: 2px;
+}
+
+.dashboard-status {
+    padding: 1.25rem 1rem;
+    text-align: center;
+    color: #374151;
+}
+

@@ -1,0 +1,221 @@
+import type { BaseContract, BigNumberish, BytesLike, FunctionFragment, Result, Interface, EventFragment, AddressLike, ContractRunner, ContractMethod, Listener } from "ethers";
+import type { TypedContractEvent, TypedDeferredTopicFilter, TypedEventLog, TypedLogDescription, TypedListener, TypedContractMethod } from "../common";
+export interface MessageProcessorInterface extends Interface {
+    getFunction(nameOrSignature: "MESSAGE_DATA_LENGTH" | "currentMessageBatchIndex" | "getPublicCircuitInputs" | "hash2" | "hash3" | "hash4" | "hash5" | "hashLeftRight" | "mode" | "numBatchesProcessed" | "owner" | "poll" | "processMessages" | "processingComplete" | "renounceOwnership" | "sbCommitment" | "sha256Hash" | "transferOwnership" | "verifier" | "verifyProcessProof" | "vkRegistry"): FunctionFragment;
+    getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+    encodeFunctionData(functionFragment: "MESSAGE_DATA_LENGTH", values?: undefined): string;
+    encodeFunctionData(functionFragment: "currentMessageBatchIndex", values?: undefined): string;
+    encodeFunctionData(functionFragment: "getPublicCircuitInputs", values: [BigNumberish, BigNumberish]): string;
+    encodeFunctionData(functionFragment: "hash2", values: [[BigNumberish, BigNumberish]]): string;
+    encodeFunctionData(functionFragment: "hash3", values: [[BigNumberish, BigNumberish, BigNumberish]]): string;
+    encodeFunctionData(functionFragment: "hash4", values: [[BigNumberish, BigNumberish, BigNumberish, BigNumberish]]): string;
+    encodeFunctionData(functionFragment: "hash5", values: [
+        [
+            BigNumberish,
+            BigNumberish,
+            BigNumberish,
+            BigNumberish,
+            BigNumberish
+        ]
+    ]): string;
+    encodeFunctionData(functionFragment: "hashLeftRight", values: [BigNumberish, BigNumberish]): string;
+    encodeFunctionData(functionFragment: "mode", values?: undefined): string;
+    encodeFunctionData(functionFragment: "numBatchesProcessed", values?: undefined): string;
+    encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+    encodeFunctionData(functionFragment: "poll", values?: undefined): string;
+    encodeFunctionData(functionFragment: "processMessages", values: [BigNumberish, BigNumberish[]]): string;
+    encodeFunctionData(functionFragment: "processingComplete", values?: undefined): string;
+    encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
+    encodeFunctionData(functionFragment: "sbCommitment", values?: undefined): string;
+    encodeFunctionData(functionFragment: "sha256Hash", values: [BigNumberish[]]): string;
+    encodeFunctionData(functionFragment: "transferOwnership", values: [AddressLike]): string;
+    encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
+    encodeFunctionData(functionFragment: "verifyProcessProof", values: [BigNumberish, BigNumberish, BigNumberish[]]): string;
+    encodeFunctionData(functionFragment: "vkRegistry", values?: undefined): string;
+    decodeFunctionResult(functionFragment: "MESSAGE_DATA_LENGTH", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "currentMessageBatchIndex", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPublicCircuitInputs", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "hash2", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "hash3", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "hash4", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "hash5", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "hashLeftRight", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "mode", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "numBatchesProcessed", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "poll", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "processMessages", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "processingComplete", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "sbCommitment", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "sha256Hash", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "verifier", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "verifyProcessProof", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "vkRegistry", data: BytesLike): Result;
+}
+export declare namespace OwnershipTransferredEvent {
+    type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
+    type OutputTuple = [previousOwner: string, newOwner: string];
+    interface OutputObject {
+        previousOwner: string;
+        newOwner: string;
+    }
+    type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+    type Filter = TypedDeferredTopicFilter<Event>;
+    type Log = TypedEventLog<Event>;
+    type LogDescription = TypedLogDescription<Event>;
+}
+export interface MessageProcessor extends BaseContract {
+    connect(runner?: ContractRunner | null): MessageProcessor;
+    waitForDeployment(): Promise<this>;
+    interface: MessageProcessorInterface;
+    queryFilter<TCEvent extends TypedContractEvent>(event: TCEvent, fromBlockOrBlockhash?: string | number | undefined, toBlock?: string | number | undefined): Promise<Array<TypedEventLog<TCEvent>>>;
+    queryFilter<TCEvent extends TypedContractEvent>(filter: TypedDeferredTopicFilter<TCEvent>, fromBlockOrBlockhash?: string | number | undefined, toBlock?: string | number | undefined): Promise<Array<TypedEventLog<TCEvent>>>;
+    on<TCEvent extends TypedContractEvent>(event: TCEvent, listener: TypedListener<TCEvent>): Promise<this>;
+    on<TCEvent extends TypedContractEvent>(filter: TypedDeferredTopicFilter<TCEvent>, listener: TypedListener<TCEvent>): Promise<this>;
+    once<TCEvent extends TypedContractEvent>(event: TCEvent, listener: TypedListener<TCEvent>): Promise<this>;
+    once<TCEvent extends TypedContractEvent>(filter: TypedDeferredTopicFilter<TCEvent>, listener: TypedListener<TCEvent>): Promise<this>;
+    listeners<TCEvent extends TypedContractEvent>(event: TCEvent): Promise<Array<TypedListener<TCEvent>>>;
+    listeners(eventName?: string): Promise<Array<Listener>>;
+    removeAllListeners<TCEvent extends TypedContractEvent>(event?: TCEvent): Promise<this>;
+    MESSAGE_DATA_LENGTH: TypedContractMethod<[], [bigint], "view">;
+    currentMessageBatchIndex: TypedContractMethod<[], [bigint], "view">;
+    getPublicCircuitInputs: TypedContractMethod<[
+        _currentMessageBatchIndex: BigNumberish,
+        _newSbCommitment: BigNumberish
+    ], [
+        bigint[]
+    ], "view">;
+    hash2: TypedContractMethod<[
+        array: [BigNumberish, BigNumberish]
+    ], [
+        bigint
+    ], "view">;
+    hash3: TypedContractMethod<[
+        array: [BigNumberish, BigNumberish, BigNumberish]
+    ], [
+        bigint
+    ], "view">;
+    hash4: TypedContractMethod<[
+        array: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
+    ], [
+        bigint
+    ], "view">;
+    hash5: TypedContractMethod<[
+        array: [
+            BigNumberish,
+            BigNumberish,
+            BigNumberish,
+            BigNumberish,
+            BigNumberish
+        ]
+    ], [
+        bigint
+    ], "view">;
+    hashLeftRight: TypedContractMethod<[
+        left: BigNumberish,
+        right: BigNumberish
+    ], [
+        bigint
+    ], "view">;
+    mode: TypedContractMethod<[], [bigint], "view">;
+    numBatchesProcessed: TypedContractMethod<[], [bigint], "view">;
+    owner: TypedContractMethod<[], [string], "view">;
+    poll: TypedContractMethod<[], [string], "view">;
+    processMessages: TypedContractMethod<[
+        _newSbCommitment: BigNumberish,
+        _proof: BigNumberish[]
+    ], [
+        void
+    ], "nonpayable">;
+    processingComplete: TypedContractMethod<[], [boolean], "view">;
+    renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+    sbCommitment: TypedContractMethod<[], [bigint], "view">;
+    sha256Hash: TypedContractMethod<[array: BigNumberish[]], [bigint], "view">;
+    transferOwnership: TypedContractMethod<[
+        newOwner: AddressLike
+    ], [
+        void
+    ], "nonpayable">;
+    verifier: TypedContractMethod<[], [string], "view">;
+    verifyProcessProof: TypedContractMethod<[
+        _currentMessageBatchIndex: BigNumberish,
+        _newSbCommitment: BigNumberish,
+        _proof: BigNumberish[]
+    ], [
+        boolean
+    ], "view">;
+    vkRegistry: TypedContractMethod<[], [string], "view">;
+    getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
+    getFunction(nameOrSignature: "MESSAGE_DATA_LENGTH"): TypedContractMethod<[], [bigint], "view">;
+    getFunction(nameOrSignature: "currentMessageBatchIndex"): TypedContractMethod<[], [bigint], "view">;
+    getFunction(nameOrSignature: "getPublicCircuitInputs"): TypedContractMethod<[
+        _currentMessageBatchIndex: BigNumberish,
+        _newSbCommitment: BigNumberish
+    ], [
+        bigint[]
+    ], "view">;
+    getFunction(nameOrSignature: "hash2"): TypedContractMethod<[
+        array: [BigNumberish, BigNumberish]
+    ], [
+        bigint
+    ], "view">;
+    getFunction(nameOrSignature: "hash3"): TypedContractMethod<[
+        array: [BigNumberish, BigNumberish, BigNumberish]
+    ], [
+        bigint
+    ], "view">;
+    getFunction(nameOrSignature: "hash4"): TypedContractMethod<[
+        array: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
+    ], [
+        bigint
+    ], "view">;
+    getFunction(nameOrSignature: "hash5"): TypedContractMethod<[
+        array: [
+            BigNumberish,
+            BigNumberish,
+            BigNumberish,
+            BigNumberish,
+            BigNumberish
+        ]
+    ], [
+        bigint
+    ], "view">;
+    getFunction(nameOrSignature: "hashLeftRight"): TypedContractMethod<[
+        left: BigNumberish,
+        right: BigNumberish
+    ], [
+        bigint
+    ], "view">;
+    getFunction(nameOrSignature: "mode"): TypedContractMethod<[], [bigint], "view">;
+    getFunction(nameOrSignature: "numBatchesProcessed"): TypedContractMethod<[], [bigint], "view">;
+    getFunction(nameOrSignature: "owner"): TypedContractMethod<[], [string], "view">;
+    getFunction(nameOrSignature: "poll"): TypedContractMethod<[], [string], "view">;
+    getFunction(nameOrSignature: "processMessages"): TypedContractMethod<[
+        _newSbCommitment: BigNumberish,
+        _proof: BigNumberish[]
+    ], [
+        void
+    ], "nonpayable">;
+    getFunction(nameOrSignature: "processingComplete"): TypedContractMethod<[], [boolean], "view">;
+    getFunction(nameOrSignature: "renounceOwnership"): TypedContractMethod<[], [void], "nonpayable">;
+    getFunction(nameOrSignature: "sbCommitment"): TypedContractMethod<[], [bigint], "view">;
+    getFunction(nameOrSignature: "sha256Hash"): TypedContractMethod<[array: BigNumberish[]], [bigint], "view">;
+    getFunction(nameOrSignature: "transferOwnership"): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
+    getFunction(nameOrSignature: "verifier"): TypedContractMethod<[], [string], "view">;
+    getFunction(nameOrSignature: "verifyProcessProof"): TypedContractMethod<[
+        _currentMessageBatchIndex: BigNumberish,
+        _newSbCommitment: BigNumberish,
+        _proof: BigNumberish[]
+    ], [
+        boolean
+    ], "view">;
+    getFunction(nameOrSignature: "vkRegistry"): TypedContractMethod<[], [string], "view">;
+    getEvent(key: "OwnershipTransferred"): TypedContractEvent<OwnershipTransferredEvent.InputTuple, OwnershipTransferredEvent.OutputTuple, OwnershipTransferredEvent.OutputObject>;
+    filters: {
+        "OwnershipTransferred(address,address)": TypedContractEvent<OwnershipTransferredEvent.InputTuple, OwnershipTransferredEvent.OutputTuple, OwnershipTransferredEvent.OutputObject>;
+        OwnershipTransferred: TypedContractEvent<OwnershipTransferredEvent.InputTuple, OwnershipTransferredEvent.OutputTuple, OwnershipTransferredEvent.OutputObject>;
+    };
+}
+//# sourceMappingURL=MessageProcessor.d.ts.map

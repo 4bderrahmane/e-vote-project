@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Keycloak Silent Check SSO</title>
+  </head>
+  <body>
+    <script>
+      // This script is part of the Keycloak silent authentication check (check-sso).
+      // It runs in a hidden iframe and communicates the result back to the main application.
+      parent.postMessage(location.href, location.origin);
+    </script>
+  </body>
+</html>
+

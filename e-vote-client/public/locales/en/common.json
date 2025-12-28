@@ -1,0 +1,17 @@
+{
+  "pageNotFound": "Page not found",
+  "pageNotFoundDescription": "The page you are looking for does not exist.",
+  "goToDashboard": "Go to Dashboard",
+  "goToLogin": "Go to Login",
+  "dashboard": {
+    "title": "Hello, {{name}}!",
+    "subtitle": "You have {{count}} new notifications.",
+    "actions": {
+      "refresh": "Refresh Data",
+      "settings": "Account Settings"
+    }
+  },
+  "app": {
+    "loading": "Loading..."
+  }
+}

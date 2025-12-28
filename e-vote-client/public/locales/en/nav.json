@@ -1,0 +1,12 @@
+{
+  "dashboard": "Dashboard",
+  "applications": "Applications",
+  "elections": "Elections",
+  "results": "Results",
+  "myVotes": "My Votes",
+  "profile": "Profile",
+  "settings": "Settings",
+  "logout": "Logout",
+  "login": "Login",
+  "register": "Register"
+}

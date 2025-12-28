@@ -1,0 +1,56 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "MockGitcoinPassportDecoder",
+  "sourceName": "contracts/mocks/MockGitcoinPassportDecoder.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newScore",
+          "type": "uint256"
+        }
+      ],
+      "name": "changeScore",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        }
+      ],
+      "name": "getScore",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "score",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x608060405234801561001057600080fd5b5060fb8061001f6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c806329044119146041578063d47875d0146053578063efedc669146077575b600080fd5b6051604c366004607f565b600055565b005b6065605e3660046097565b5060005490565b60405190815260200160405180910390f35b606560005481565b600060208284031215609057600080fd5b5035919050565b60006020828403121560a857600080fd5b81356001600160a01b038116811460be57600080fd5b939250505056fea264697066735822122003f4e74ef27811e264ed65fdfb552cdd0e69be400e0414fced510522b170329464736f6c63430008140033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b5060043610603c5760003560e01c806329044119146041578063d47875d0146053578063efedc669146077575b600080fd5b6051604c366004607f565b600055565b005b6065605e3660046097565b5060005490565b60405190815260200160405180910390f35b606560005481565b600060208284031215609057600080fd5b5035919050565b60006020828403121560a857600080fd5b81356001600160a01b038116811460be57600080fd5b939250505056fea264697066735822122003f4e74ef27811e264ed65fdfb552cdd0e69be400e0414fced510522b170329464736f6c63430008140033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
