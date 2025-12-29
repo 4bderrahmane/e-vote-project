@@ -30,6 +30,7 @@
     "@openzeppelin/docs-utils": "^0.1.6",
     "@semaphore-protocol/contracts": "^4.14.0",
     "@semaphore-protocol/core": "^4.14.0",
-    "@semaphore-protocol/identity": "^4.14.0"
+    "@semaphore-protocol/identity": "^4.14.0",
+    "@semaphore-protocol/proof": "^4.14.0"
   }
 }
