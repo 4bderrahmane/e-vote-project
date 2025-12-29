@@ -2,6 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "./Election.sol";
+import "@semaphore-protocol/contracts/interfaces/ISemaphoreVerifier.sol";
 
 /// @title ElectionFactory
 /// @notice Deploys one SemaphoreElectionInstance per election.
@@ -41,7 +42,7 @@ contract ElectionFactory {
         uint256 scope = _hashToScope(uuid);
 
         election = address(new Election(
-            verifier,
+            ISemaphoreVerifier(verifier),
             msg.sender,       // coordinator
             merkleTreeDepth,
             scope
