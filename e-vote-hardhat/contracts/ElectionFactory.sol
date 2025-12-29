@@ -14,12 +14,12 @@ contract ElectionFactory {
 
     /// @dev Emitted when a new election instance is deployed.
     /// @param uuid: Off-chain UUID (bytes16).
-    /// @param scope: External nullifier / scope derived from uuid (field-friendly uint256).
+    /// @param externalNullifier: External nullifier derived from uuid (field-friendly uint256).
     /// @param coordinator: Coordinator of this election (msg.sender).
     /// @param election: Deployed election contract address.
     /// @param merkleTreeDepth: Merkle tree depth for this election.
 
-    event ElectionDeployed(bytes16 indexed uuid, uint256 indexed scope, address indexed coordinator, address election, uint8 merkleTreeDepth);
+    event ElectionDeployed(bytes16 indexed uuid, uint256 indexed externalNullifier, address indexed coordinator, address election, uint8 merkleTreeDepth);
 
     /// @notice The Groth16 semaphore verifier contract address (shared by all elections).
     address public immutable verifier;
@@ -39,23 +39,23 @@ contract ElectionFactory {
         if (electionByUuid[uuid] != address(0)) revert Factory__ElectionAlreadyExists();
 
         // This is the ExternalNullfier (Scope) and it gonna be hashed using keccak256 to it can be used a circuit public input
-        uint256 scope = _hashToScope(uuid);
+        uint256 externalNullifier = _hashToExternalNullifier(uuid);
 
         election = address(new Election(
             ISemaphoreVerifier(verifier),
             msg.sender,       // coordinator
             merkleTreeDepth,
-            scope
+            externalNullifier
         ));
 
         electionByUuid[uuid] = election;
 
-        emit ElectionDeployed(uuid, scope, msg.sender, election, merkleTreeDepth);
+        emit ElectionDeployed(uuid, externalNullifier, msg.sender, election, merkleTreeDepth);
     }
 
     /// @dev Hash bytes16 -> uint256 usable as a circuit public input (field-friendly).
     /// Using >> 8 keeps it under 248 bits (safe margin).
-    function _hashToScope(bytes16 uuid) internal pure returns (uint256) {
+    function _hashToExternalNullifier(bytes16 uuid) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(uuid))) >> 8;
     }
 }

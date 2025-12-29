@@ -8,10 +8,11 @@ import "@semaphore-protocol/contracts/interfaces/ISemaphoreVerifier.sol";
 /// @title Semaphore voting contract (single election instance).
 /// @notice It allows users to vote anonymously in an election.
 contract Election is IElection, SemaphoreGroups {
+    
     ISemaphoreVerifier public verifier;
     address public coordinator;
     ElectionState public state;
-    uint256 public scope;
+    uint256 public externalNullifier;
 
     /// @dev Tracks used nullifiers for this election.
     mapping(uint256 => bool) internal nullifierHashes;
@@ -29,14 +30,14 @@ contract Election is IElection, SemaphoreGroups {
     /// @param _verifier: Semaphore verifier address.
     /// @param _coordinator: Election coordinator address.
     /// @param _merkleTreeDepth: Merkle tree depth for the group.
-    /// @param _scope: External nullifier/scope for this election.
-    constructor(ISemaphoreVerifier _verifier, address _coordinator, uint8 _merkleTreeDepth, uint256 _scope) {
+    /// @param _externalNullifier: External nullifier for this election.
+    constructor(ISemaphoreVerifier _verifier, address _coordinator, uint8 _merkleTreeDepth, uint256 _externalNullifier) {
         verifier = _verifier;
         coordinator = _coordinator;
-        scope = _scope;
+        externalNullifier = _externalNullifier;
         state = ElectionState.Created;
 
-        _createGroup(_scope, _merkleTreeDepth);
+        _createGroup(_externalNullifier, _merkleTreeDepth);
     }
 
     /// @dev See {IElection-addVoter}.
@@ -45,7 +46,7 @@ contract Election is IElection, SemaphoreGroups {
             revert Semaphore__ElectionHasAlreadyBeenStarted();
         }
 
-        _addMember(scope, identityCommitment);
+        _addMember(externalNullifier, identityCommitment);
     }
 
     /// @dev See {IElection-startElection}.
@@ -69,11 +70,11 @@ contract Election is IElection, SemaphoreGroups {
             revert Semaphore__YouAreUsingTheSameNullifierTwice();
         }
 
-        uint256 merkleTreeDepth = getMerkleTreeDepth(scope);
-        uint256 merkleTreeRoot = getMerkleTreeRoot(scope);
+        uint256 merkleTreeDepth = getMerkleTreeDepth(externalNullifier);
+        uint256 merkleTreeRoot = getMerkleTreeRoot(externalNullifier);
         uint256 signal = uint256(keccak256(ciphertext)) >> 8;
 
-        verifier.verifyProof(merkleTreeRoot, nullifierHash, signal, scope, proof, merkleTreeDepth);
+        verifier.verifyProof(merkleTreeRoot, nullifierHash, signal, externalNullifier, proof, merkleTreeDepth);
 
         nullifierHashes[nullifierHash] = true;
 
