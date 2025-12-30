@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.krino.voting_system.entity.enums.ElectionStatus;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -34,4 +35,7 @@ public class Election
     private ElectionStatus status;
 
     private String contractAddress;
+
+    @Column(name = "coordinator_pubkey", nullable = false, columnDefinition = "bytea")
+    private byte[] coordinatorPubKey;
 }
