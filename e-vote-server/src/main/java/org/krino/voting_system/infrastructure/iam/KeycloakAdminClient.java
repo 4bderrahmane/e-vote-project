@@ -5,9 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
 import org.krino.voting_system.exception.KeycloakAdminException;
 import org.krino.voting_system.infrastructure.iam.config.KeycloakAdminProperties;
-import org.springframework.stereotype.Component;
 
-@Component
 @RequiredArgsConstructor
 public class KeycloakAdminClient implements KeycloakAdminGateway
 {
