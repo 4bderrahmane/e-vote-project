@@ -7,17 +7,25 @@ interface IElection {
     error Semaphore__CallerIsNotTheElectionCoordinator();
     error Semaphore__ElectionHasAlreadyBeenStarted();
     error Semaphore__ElectionIsNotOngoing();
+    error Semaphore__InvalidExternalNullifier();
+    error Semaphore__InvalidProof();
+    error Semaphore__InvalidEndTime();
+    error Semaphore__ElectionHasEnded();
+    error Semaphore__ElectionHasNotEndedYet();
+    error Semaphore__InvalidVerifier();
+    error Semaphore__MemberAlreadyExists();
     error Semaphore__YouAreUsingTheSameNullifierTwice();
     error Semaphore__InvalidCoordinator();
+    error Semaphore__InvalidCoordinatorPublicKey();
 
-    enum ElectionState {Created, Ongoing, Ended}
+    // enum ElectionState {Created, Ongoing, Ended}
+    enum ElectionPhase { REGISTRATION, VOTING, TALLY }
 
     // Events
 
     /// @dev Emitted when an election is started.
     /// @param coordinator: Coordinator of the election.
-    /// @param coordinatorPublicKey: Public key used to encrypt the election votes.
-    event ElectionStarted(address indexed coordinator, bytes coordinatorPublicKey);
+    event ElectionStarted(address indexed coordinator);
 
     /// @dev Emitted when a user votes on an election.
     /// @param ciphertext: User encrypted vote.
@@ -37,8 +45,7 @@ interface IElection {
     function addVoter(uint256 identityCommitment) external;
 
     /// @dev Starts an election and publishes the key to encrypt the votes.
-    /// @param coordinatorPublicKey: Public key to encrypt election votes.
-    function startElection(bytes calldata coordinatorPublicKey) external;
+    function startElection() external;
 
     /// @dev Casts an anonymous vote in an election.
     /// @param ciphertext: Encrypted vote.
