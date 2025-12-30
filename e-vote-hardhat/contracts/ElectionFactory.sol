@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity >=0.8.23 <0.9.0;
 
 import "./Election.sol";
 import "@semaphore-protocol/contracts/interfaces/ISemaphoreVerifier.sol";
