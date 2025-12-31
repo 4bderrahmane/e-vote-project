@@ -10,18 +10,15 @@ import type {
 } from "ethers";
 
 const { ethers } = await network.connect();
-const POSEIDON_T3 =
-  "npm/poseidon-solidity@0.0.5/PoseidonT3.sol:PoseidonT3";
+const POSEIDON_T3 = "npm/poseidon-solidity@0.0.5/PoseidonT3.sol:PoseidonT3";
 const [POSEIDON_T3_SOURCE, POSEIDON_T3_NAME] = POSEIDON_T3.split(":");
-let cachedPoseidonArtifact:
-  | { abi: InterfaceAbi; bytecode: string }
-  | undefined;
+let cachedPoseidonArtifact: { abi: InterfaceAbi; bytecode: string } | undefined;
 type ElectionFactoryContract = Contract & {
   verifier(): Promise<string>;
   createElection(
     uuid: string,
     endTime: bigint,
-    encryptionPublicKey: string,
+    encryptionPublicKey: string
   ): Promise<ContractTransactionResponse>;
   electionByUuid(uuid: string): Promise<string>;
   connect(signer: Signer): ElectionFactoryContract;
@@ -37,11 +34,7 @@ describe("ElectionFactory", function () {
   async function deployPoseidonT3() {
     const [deployer] = await ethers.getSigners();
     const { abi, bytecode } = await loadPoseidonArtifact();
-    const PoseidonT3 = new ethers.ContractFactory(
-      abi,
-      bytecode,
-      deployer,
-    );
+    const PoseidonT3 = new ethers.ContractFactory(abi, bytecode, deployer);
     return PoseidonT3.deploy();
   }
 
@@ -76,7 +69,7 @@ describe("ElectionFactory", function () {
     }
 
     throw new Error(
-      "PoseidonT3 build output not found in artifacts/build-info. Run `hardhat compile` first.",
+      "PoseidonT3 build output not found in artifacts/build-info. Run `hardhat compile` first."
     );
   }
 
@@ -99,7 +92,7 @@ describe("ElectionFactory", function () {
       }
     );
     const factory = (await Factory.deploy(
-      verifier.target,
+      verifier.target
     )) as ElectionFactoryContract;
 
     return { factory, verifier, owner, other, poseidonT3 };
