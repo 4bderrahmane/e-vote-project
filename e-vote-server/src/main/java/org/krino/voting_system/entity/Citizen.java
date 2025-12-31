@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,10 +61,6 @@ public class Citizen
 
     @Builder.Default
     private boolean emailVerified = false;
-
-
-    private Deque<String> roles;
-
 
     @Builder.Default
     @Column(name = "is_eligible", nullable = false)
