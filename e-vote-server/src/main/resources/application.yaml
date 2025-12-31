@@ -2,14 +2,13 @@ server:
   port: 9090
 
 spring:
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
   application:
     name: voting-system
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/krino
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -27,7 +26,7 @@ spring:
           keycloak:
             provider: keycloak
             client-id: voting-backend
-            client-secret: ${CLIENT_SECRET}
+            client-secret: ${VOTING_BACKEND_CLIENT_SECRET}
             authorization-grant-type: client_credentials
             scope: openid
         provider:
@@ -49,7 +48,7 @@ keycloak-admin:
   server-url: "http://localhost:8080"
   realm: "voting-realm"
   client-id: "voting-admin"
-  client-secret: ${CLIENT_SECRET}
+  client-secret: ${VOTING_ADMIN_CLIENT_SECRET}
 
 app:
   cors:
