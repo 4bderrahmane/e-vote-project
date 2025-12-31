@@ -8,7 +8,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
-      "@components": path.resolve(__dirname, "src/components"),
+      '@components': path.resolve(__dirname, "src/shared/components"),
+      '@features': path.resolve(__dirname, "src/shared/features"),
+      '@pages': path.resolve(__dirname, "src/shared/pages"),
+      '@types': path.resolve(__dirname, "src/shared/types"),
     },
   },
 });
