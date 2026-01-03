@@ -65,3 +65,7 @@ web3j:
   client-address: http://127.0.0.1:8545
   private-key: ${RELAYER_PRIVATE_KEY}
   election-factory-address: ${ELECTION_FACTORY_ADDRESS}
+  confirmations: 2
+  start-block: 0
+  listener:
+    poll-interval-ms: 5000
