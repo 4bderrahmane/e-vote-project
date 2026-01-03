@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.math.BigInteger;
+
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "web3j")
@@ -13,5 +15,6 @@ public class Web3jProperties
     private long chainId;
     private String privateKey;
     private String electionFactoryAddress;
-
+    private int confirmations = 2;
+    private BigInteger startBlock = BigInteger.ZERO;
 }
