@@ -1,0 +1,66 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: voting-system
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: voting-backend
+            client-secret: ${VOTING_BACKEND_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope: openid
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8080/realms/voting-realm
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/voting-realm
+
+#        jwt:
+#          issuer-uri: http://localhost:8080/realms/voting-realm
+#          jwk-set-uri: http://localhost:8080/realms/voting-realm/protocol/openid-connect/certs
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.tool.hbm2ddl: DEBUG
+
+keycloak-admin:
+  server-url: "http://localhost:8080"
+  realm: "voting-realm"
+  client-id: "voting-admin"
+  client-secret: ${VOTING_ADMIN_CLIENT_SECRET}
+
+app:
+  cors:
+    allowed-origins:
+    - http://localhost:5173
+    - http://localhost:3000
+
+sync:
+  secret: ${SYNC_SECRET}
+
+web3j:
+  chain-id: 31337 #5777 for ganache
+  client-address: http://127.0.0.1:8545
+  private-key: ${RELAYER_PRIVATE_KEY}
+  election-factory-address: ${ELECTION_FACTORY_ADDRESS}
