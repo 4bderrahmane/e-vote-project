@@ -120,14 +120,14 @@ describe("ElectionFactory", function () {
   });
 
   it("creates elections and stores the deployment", async function () {
-    const { factory, owner, poseidonT3 } = await deployFactory();
+    const { factory, owner, other, poseidonT3 } = await deployFactory();
     const now = (await ethers.provider.getBlock("latest"))!.timestamp;
     const endTime = BigInt(now + 3600);
     const uuid = ethers.hexlify(ethers.randomBytes(16));
     const encryptionPublicKey = ethers.keccak256(ethers.toUtf8Bytes("pubkey"));
 
     await expect(
-      factory.createElection(uuid, endTime, encryptionPublicKey)
+      factory.connect(other).createElection(uuid, endTime, encryptionPublicKey)
     ).to.emit(factory, "ElectionDeployed");
 
     const electionAddress = await factory.electionByUuid(uuid);
@@ -143,35 +143,25 @@ describe("ElectionFactory", function () {
     );
     const election = Election.attach(electionAddress) as ElectionContract;
 
-    expect(await election.coordinator()).to.equal(owner.address);
+    expect(await election.coordinator()).to.equal(other.address);
     expect(await election.externalNullifier()).to.equal(BigInt(uuid));
     expect(await election.endTime()).to.equal(endTime);
     expect(await election.encryptionPublicKey()).to.equal(encryptionPublicKey);
   });
 
   it("prevents duplicate elections", async function () {
-    const { factory } = await deployFactory();
-    const now = (await ethers.provider.getBlock("latest"))!.timestamp;
-    const endTime = BigInt(now + 3600);
-    const uuid = ethers.hexlify(ethers.randomBytes(16));
-    const encryptionPublicKey = ethers.keccak256(ethers.toUtf8Bytes("pubkey"));
-
-    await factory.createElection(uuid, endTime, encryptionPublicKey);
-
-    await expect(
-      factory.createElection(uuid, endTime, encryptionPublicKey)
-    ).to.be.revertedWithCustomError(factory, "Factory__ElectionAlreadyExists");
-  });
-
-  it("only owner can create elections", async function () {
     const { factory, other } = await deployFactory();
     const now = (await ethers.provider.getBlock("latest"))!.timestamp;
     const endTime = BigInt(now + 3600);
     const uuid = ethers.hexlify(ethers.randomBytes(16));
     const encryptionPublicKey = ethers.keccak256(ethers.toUtf8Bytes("pubkey"));
 
+    await factory
+      .connect(other)
+      .createElection(uuid, endTime, encryptionPublicKey);
+
     await expect(
-      factory.connect(other).createElection(uuid, endTime, encryptionPublicKey)
-    ).to.be.revertedWithCustomError(factory, "OwnableUnauthorizedAccount");
+      factory.createElection(uuid, endTime, encryptionPublicKey)
+    ).to.be.revertedWithCustomError(factory, "Factory__ElectionAlreadyExists");
   });
 });

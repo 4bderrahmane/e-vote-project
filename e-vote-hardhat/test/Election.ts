@@ -187,12 +187,14 @@ describe("Election", function () {
     );
   });
 
-  it("casts a vote (current behavior: allowed during registration)", async function () {
+  it("casts a vote", async function () {
     const { election } = await deployElection();
     const ciphertext = ethers.toUtf8Bytes("vote");
     const ciphertextHex = ethers.hexlify(ciphertext);
     const nullifierHash = 9n;
     const proof = Array(8).fill(0n);
+
+    await election.startElection();
 
     await expect(election.castVote(ciphertext, nullifierHash, proof))
       .to.emit(election, "VoteAdded")
@@ -206,6 +208,8 @@ describe("Election", function () {
     const ciphertext = ethers.toUtf8Bytes("vote");
     const nullifierHash = 10n;
     const proof = Array(8).fill(0n);
+
+    await election.startElection();
 
     await election.castVote(ciphertext, nullifierHash, proof);
 
@@ -222,6 +226,8 @@ describe("Election", function () {
     const ciphertext = ethers.toUtf8Bytes("vote");
     const nullifierHash = 11n;
     const proof = Array(8).fill(0n);
+
+    await election.startElection();
 
     await verifier.setShouldVerify(false);
 
