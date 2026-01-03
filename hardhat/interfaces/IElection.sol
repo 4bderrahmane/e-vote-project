@@ -18,7 +18,6 @@ interface IElection {
     error Semaphore__InvalidCoordinator();
     error Semaphore__InvalidCoordinatorPublicKey();
 
-    // enum ElectionState {Created, Ongoing, Ended}
     enum ElectionPhase { REGISTRATION, VOTING, TALLY }
 
     // Events
