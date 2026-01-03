@@ -66,22 +66,23 @@ contract Election is IElection, SemaphoreGroups {
 
     function castVote(bytes calldata ciphertext, uint256 nullifierHash, uint256[8] calldata proof) external override {
 
-        if (state != ElectionPhase.REGISTRATION) revert Semaphore__ElectionIsNotOngoing();
+        if (state != ElectionPhase.VOTING) revert Semaphore__ElectionIsNotOngoing();
         if (block.timestamp >= endTime) revert Semaphore__ElectionHasEnded();
         if (nullifierHashes[nullifierHash]) revert Semaphore__YouAreUsingTheSameNullifierTwice();
 
         uint256 merkleTreeDepth = getMerkleTreeDepth(externalNullifier);
         uint256 merkleTreeRoot = getMerkleTreeRoot(externalNullifier);
 
-        // IMPORTANT: bind the proof to the ciphertext via a deterministic message preimage.
-        // Off-chain must use the same `message` when generating the Semaphore proof.
-        uint256 message = _hashBytes(ciphertext);
+        // IMPORTANT: bind the proof to the ciphertext via a deterministic signal.
+        // Off-chain must use the same signal when generating the Semaphore proof.
+        // This matches Semaphore's hash-to-field convention: keccak256(bytes) >> 8.
+        uint256 signal = _hashBytes(ciphertext);
 
         bool verified = verifier.verifyProof(
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
-            [merkleTreeRoot, nullifierHash, _hash(message), _hash(externalNullifier)],
+            [merkleTreeRoot, nullifierHash, signal, _hash(externalNullifier)],
             merkleTreeDepth
         );
 

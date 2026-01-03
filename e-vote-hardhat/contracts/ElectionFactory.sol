@@ -3,12 +3,11 @@ pragma solidity >=0.8.23 <0.9.0;
 
 import "./Election.sol";
 import "@semaphore-protocol/contracts/interfaces/ISemaphoreVerifier.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title ElectionFactory
 /// @notice Deploys one SemaphoreElectionInstance per election.
 
-contract ElectionFactory is Ownable {
+contract ElectionFactory {
 
     error Factory__InvalidVerifier();
     error Factory__ElectionAlreadyExists();
@@ -33,7 +32,7 @@ contract ElectionFactory is Ownable {
     /// @dev UUID -> election instance address.
     mapping(bytes16 => address) public electionByUuid;
 
-    constructor(address verifier_) Ownable(msg.sender) {
+    constructor(address verifier_) {
         if (verifier_ == address(0) || verifier_.code.length == 0) {
             revert Factory__InvalidVerifier();
         }
@@ -42,7 +41,7 @@ contract ElectionFactory is Ownable {
 
     /// @notice Deploy a new election instance (coordinator is msg.sender).
     /// @dev This is function is gonna be called after the POST Request of creating the Election object in the backend.
-    function createElection(bytes16 uuid, uint256 endTime, bytes32 enctyptionPublicKey) external onlyOwner returns (address election) {
+    function createElection(bytes16 uuid, uint256 endTime, bytes32 enctyptionPublicKey) external returns (address election) {
         if (electionByUuid[uuid] != address(0)) revert Factory__ElectionAlreadyExists();
 
         // Use the raw UUID as the scope so on-chain hashing matches Semaphore's convention.
