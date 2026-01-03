@@ -104,12 +104,10 @@ contract Election is IElection, SemaphoreGroups {
         return nullifierHashes[nullifierHash];
     }
 
-    /// @dev Same hash-to-field used by Semaphore.sol. :contentReference[oaicite:5]{index=5}
     function _hash(uint256 message) private pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(message))) >> 8;
     }
 
-    /// @dev Hash raw bytes into a field-friendly uint256.
     function _hashBytes(bytes calldata data) private pure returns (uint256) {
         return uint256(keccak256(data)) >> 8;
     }
