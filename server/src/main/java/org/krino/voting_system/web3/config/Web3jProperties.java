@@ -17,4 +17,12 @@ public class Web3jProperties
     private String electionFactoryAddress;
     private int confirmations = 2;
     private BigInteger startBlock = BigInteger.ZERO;
+    private Listener listener = new Listener();
+
+    @Getter
+    @Setter
+    public static class Listener
+    {
+        private long pollIntervalMs = 5000;
+    }
 }
