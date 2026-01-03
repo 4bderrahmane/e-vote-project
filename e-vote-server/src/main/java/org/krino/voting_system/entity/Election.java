@@ -2,40 +2,71 @@ package org.krino.voting_system.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.krino.voting_system.entity.enums.ElectionStatus;
+import org.krino.voting_system.entity.enums.ElectionPhase;
 
-import java.math.BigInteger;
-import java.time.LocalDateTime;
 import java.util.UUID;
+import java.math.BigInteger;
+import java.time.Instant;
 
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "elections")
+@Table(
+        name = "elections",
+        indexes = {
+                @Index(name = "idx_elections_public_id", columnList = "publicId", unique = true),
+                @Index(name = "idx_elections_contract_address", columnList = "contractAddress", unique = true),
+                @Index(name = "idx_elections_end_time", columnList = "endTime")
+        }
+)
 public class Election
 {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Generate this in the constructor so it's never null
     @Column(nullable = false, unique = true, updatable = false)
-    private UUID publicId = UUID.randomUUID();
+    private UUID publicId;
 
+    @PrePersist
+    void prePersist()
+    {
+        if (publicId == null) publicId = UUID.randomUUID();
+    }
+
+    @Column(nullable = false)
     private String title;
 
+    @Column(columnDefinition = "text")
     private String description;
 
-    private LocalDateTime startDate;
+    private Instant startTime;
 
-    private LocalDateTime endDate;
+    @Column(nullable = false)
+    private Instant endTime;
 
-    private ElectionStatus status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private ElectionPhase phase;
 
+    @Column(nullable = false, unique = true, length = 42)
     private String contractAddress;
 
-    @Column(name = "coordinator_pubkey", nullable = false, columnDefinition = "bytea")
-    private byte[] coordinatorPubKey;
+    // On chain externalNullifier (uint256)
+    @Column(nullable = false, precision = 78, scale = 0)
+    private BigInteger externalNullifier;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "coordinator_id", referencedColumnName = "id", nullable = false, foreignKey = @ForeignKey(name = "fk_elections_coordinator"))
+    private Citizen coordinator;
+
+    @Column(name = "encryption_public_key", nullable = false, columnDefinition = "bytea")
+    private byte[] encryptionPublicKey;
+
+    @Column(name = "decryption_key", columnDefinition = "bytea")
+    private byte[] decryptionKey;
 }
