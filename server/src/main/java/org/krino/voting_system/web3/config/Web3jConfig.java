@@ -19,7 +19,7 @@ public class Web3jConfig
     @Bean
     public Web3j web3j(Web3jProperties p)
     {
-        return Web3j.build(new HttpService(p.getRpcUrl()));
+        return Web3j.build(new HttpService(p.getClientAddress()));
     }
 
     @Bean
