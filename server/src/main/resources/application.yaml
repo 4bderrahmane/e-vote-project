@@ -43,6 +43,7 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.tool.hbm2ddl: DEBUG
+    org.springframework.boot.context.properties: DEBUG
 
 keycloak-admin:
   server-url: "http://localhost:8080"
