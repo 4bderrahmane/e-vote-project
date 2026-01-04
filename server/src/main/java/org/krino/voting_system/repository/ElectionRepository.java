@@ -1,5 +1,6 @@
 package org.krino.voting_system.repository;
 
+import org.jspecify.annotations.NonNull;
 import org.krino.voting_system.entity.Election;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -13,6 +14,7 @@ public interface ElectionRepository extends JpaRepository<Election, Long>
 {
     Optional<Election> findByPublicId(UUID publicId);
 
-//    Optional<List<Election>> findAll();
-//    void deleteElectionById(Long id);
+    Optional<Election> findByContractAddressIgnoreCase(String contractAddress);
+
+    @NonNull List<Election> findAll();
 }

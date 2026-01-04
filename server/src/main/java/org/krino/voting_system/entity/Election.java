@@ -17,9 +17,9 @@ import java.time.Instant;
 @Table(
         name = "elections",
         indexes = {
-                @Index(name = "idx_elections_public_id", columnList = "publicId", unique = true),
-                @Index(name = "idx_elections_contract_address", columnList = "contractAddress", unique = true),
-                @Index(name = "idx_elections_end_time", columnList = "endTime")
+                @Index(name = "idx_elections_public_id", columnList = "public_id", unique = true),
+                @Index(name = "idx_elections_contract_address", columnList = "contract_address", unique = true),
+                @Index(name = "idx_elections_end_time", columnList = "end_time")
         }
 )
 public class Election
@@ -29,13 +29,21 @@ public class Election
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, updatable = false)
+    @Version
+    private Long version;
+
+    @Column(name = "public_id", nullable = false, unique = true, updatable = false)
     private UUID publicId;
 
+    @Column(name = "contract_address", unique = true, length = 42)
+    private String contractAddress;
+
     @PrePersist
-    void prePersist()
+    @PreUpdate
+    void normalize()
     {
         if (publicId == null) publicId = UUID.randomUUID();
+        if (contractAddress != null) contractAddress = contractAddress.toLowerCase();
     }
 
     @Column(nullable = false)
@@ -46,15 +54,12 @@ public class Election
 
     private Instant startTime;
 
-    @Column(nullable = false)
+    @Column(name = "end_time", nullable = false)
     private Instant endTime;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private ElectionPhase phase;
-
-    @Column(nullable = false, unique = true, length = 42)
-    private String contractAddress;
 
     // On chain externalNullifier (uint256)
     @Column(nullable = false, precision = 78, scale = 0)

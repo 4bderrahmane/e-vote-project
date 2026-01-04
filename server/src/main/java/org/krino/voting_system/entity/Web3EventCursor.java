@@ -19,9 +19,9 @@ public class Web3EventCursor
     private String key;
 
     // uint256-ish => BigInteger
-    @Column(name = "last_processed_block", nullable = false, precision = 78, scale = 0)
-    private BigInteger lastProcessedBlock;
+    @Column(name = "next_block", nullable = false, precision = 78, scale = 0)
+    private BigInteger nextBlock;
 
-    @Column(name = "last_processed_log_index", nullable = false, precision = 78, scale = 0)
-    private BigInteger lastProcessedLogIndex;
+    @Column(name = "next_log_index", nullable = false, precision = 78, scale = 0)
+    private BigInteger nextLogIndex;
 }
