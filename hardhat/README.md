@@ -30,6 +30,37 @@ npx hardhat test solidity
 npx hardhat test mocha
 ```
 
+### Deploy `ElectionFactory` (local Hardhat)
+
+This project includes a deployment script that deploys:
+
+- the Poseidon `PoseidonT3` library (required for Semaphore Groups)
+- a Semaphore verifier:
+  - deploys `MockSemaphoreVerifier` automatically on local/dev networks, OR
+  - uses `SEMAPHORE_VERIFIER_ADDRESS` if provided
+- `ElectionFactory`
+
+By default it deploys only the factory (recommended while iterating locally).
+
+Local deploy:
+
+```shell
+npm run deploy
+```
+
+Optional environment variables (script: [scripts/deploy-contracts.ts](scripts/deploy-contracts.ts)):
+
+- `SEMAPHORE_VERIFIER_ADDRESS` (address): if set, the script will not deploy the mock verifier
+
+Optional: deploy a standalone `Election` too (not required if you only want the factory):
+
+- `DEPLOY_ELECTION` (`true`/`1`): if set, also deploys an `Election` instance
+- `COORDINATOR_ADDRESS` (address): defaults to the deployer address
+- `EXTERNAL_NULLIFIER` (uint256): defaults to `123`
+- `END_TIME` (unix timestamp, uint256): if set, used as-is
+- `DURATION_SECONDS` (number): used only if `END_TIME` is not set, defaults to `3600`
+- `ENCRYPTION_PUBLIC_KEY` (bytes32 hex): defaults to `keccak256("pubkey")`
+
 ### Make a deployment to Sepolia
 
 This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
