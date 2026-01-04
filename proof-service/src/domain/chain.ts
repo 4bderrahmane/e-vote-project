@@ -1,5 +1,5 @@
 import {createPublicClient, http, parseAbi, getContract} from "viem"
-import {env} from "./config.js"
+import {env} from "../config/env"
 
 export const client = createPublicClient({
     transport: http(env.RPC_URL)

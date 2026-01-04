@@ -1,5 +1,6 @@
 import {Group} from "@semaphore-protocol/group"
-
+import "@semaphore-protocol/proof"
+// import
 
 export type MerkleProofDTO = {
     root: string
@@ -7,6 +8,8 @@ export type MerkleProofDTO = {
     siblings: string[]
     pathIndices: number[]
 }
+
+// LeanIMTMerkleProof
 
 export class ElectionGroupState {
     public readonly election: `0x${string}`
