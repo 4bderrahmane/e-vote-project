@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: proof
+      POSTGRES_PASSWORD: proof
+      POSTGRES_DB: proofdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - proof_pg:/var/lib/postgresql/data
+
+  proof-service:
+    build: .
+    environment:
+      RPC_URL: "http://host.docker.internal:8545"
+      DATABASE_URL: "postgres://proof:proof@postgres:5432/proofdb"
+      ELECTION_ADDRESSES: "0xYourElection1,0xYourElection2"
+      PORT: "4010"
+      CONFIRMATIONS: "0"
+    depends_on:
+      - postgres
+    ports:
+      - "4010:4010"
+
+volumes:
+  proof_pg:
