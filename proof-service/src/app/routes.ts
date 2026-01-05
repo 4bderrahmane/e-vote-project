@@ -2,12 +2,21 @@ import type {FastifyInstance} from "fastify"
 import {z} from "zod"
 import type {ElectionGroupState} from "../domain/state.js"
 import {electionContract} from "../domain/chain.js"
+import {getAddress, isAddress} from "viem"
 
-const AddressSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/)
-const CommitmentSchema = z.string().regex(/^\d+$/)
+const AddressSchema = z
+    .string()
+    .refine((v) => isAddress(v), "Invalid address")
+
+// uint256 max is 78 digits; cap length to avoid BigInt DoS inputs
+const CommitmentSchema = z
+    .string()
+    .regex(/^\d+$/)
+    .max(78)
 
 function normalizeAddress(address: string): string {
-    return address.toLowerCase()
+    // checksum-normalize then lowercase for map key stability
+    return getAddress(address).toLowerCase()
 }
 
 export function registerRoutes(app: FastifyInstance, states: Map<string, ElectionGroupState>) {
@@ -15,7 +24,7 @@ export function registerRoutes(app: FastifyInstance, states: Map<string, Electio
 
     app.get<{ Params: { address: string } }>("/elections/:address/root", async (req, reply) => {
         const parsed = AddressSchema.safeParse(req.params.address)
-        if (!parsed.success) return reply.code(400).send({error: "Invalid address"})
+        if (!parsed.success) return reply.code(400).send({error: parsed.error.issues[0]?.message ?? "Invalid address"})
 
         const address = normalizeAddress(parsed.data)
         const state = states.get(address)
@@ -27,7 +36,7 @@ export function registerRoutes(app: FastifyInstance, states: Map<string, Electio
 
         return {
             groupId: state.groupId.toString(),
-            depth: state.depth,
+            expectedDepth: state.expectedDepth,
             onChainRoot: onChainRoot.toString(),
             offChainRoot: offChainRoot.toString(),
             match: onChainRoot === offChainRoot
@@ -38,7 +47,7 @@ export function registerRoutes(app: FastifyInstance, states: Map<string, Electio
         "/elections/:address/proof",
         async (req, reply) => {
             const addrParsed = AddressSchema.safeParse(req.params.address)
-            if (!addrParsed.success) return reply.code(400).send({error: "Invalid address"})
+            if (!addrParsed.success) return reply.code(400).send({error: addrParsed.error.issues[0]?.message ?? "Invalid address"})
 
             const commitmentParsed = CommitmentSchema.safeParse(req.query.commitment)
             if (!commitmentParsed.success) return reply.code(400).send({error: "Invalid commitment"})
@@ -47,7 +56,13 @@ export function registerRoutes(app: FastifyInstance, states: Map<string, Electio
             const state = states.get(address)
             if (!state) return reply.code(404).send({error: "Unknown election"})
 
-            const proof = state.getProofByCommitment(BigInt(commitmentParsed.data))
+            let proof
+            try {
+                proof = state.getMerkleProofJSON(BigInt(commitmentParsed.data))
+            } catch {
+                // Don’t leak internal errors; treat as not found.
+                return reply.code(404).send({error: "Commitment not found"})
+            }
 
             const c = electionContract(state.election)
             const onChainRoot = await c.read.getMerkleTreeRoot([state.groupId])
@@ -62,7 +77,7 @@ export function registerRoutes(app: FastifyInstance, states: Map<string, Electio
 
             return {
                 groupId: state.groupId.toString(),
-                depth: state.depth,
+                expectedDepth: state.expectedDepth,
                 ...proof
             }
         }
