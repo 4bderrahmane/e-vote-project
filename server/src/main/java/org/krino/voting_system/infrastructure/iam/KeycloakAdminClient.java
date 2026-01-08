@@ -25,7 +25,7 @@ public class KeycloakAdminClient implements KeycloakAdminGateway
         {
             if (e.getResponse() != null && e.getResponse().getStatus() == 404)
             {
-                return; // idempotent: already deleted
+                return;
             }
             throw KeycloakAdminException.from(e, userId, String.format("Failed to delete user with id: %s in Keycloak", userId));
         }
