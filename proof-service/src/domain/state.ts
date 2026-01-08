@@ -1,75 +1,102 @@
-import {Group} from "@semaphore-protocol/group"
-import "@semaphore-protocol/proof"
-// import
+import {Group, type MerkleProof} from "@semaphore-protocol/group"
+import {Address} from "viem";
 
-export type MerkleProofDTO = {
+export type MerkleProofJSON = {
+    index: number
+    leaf: string
     root: string
-    leafIndex: number
     siblings: string[]
-    pathIndices: number[]
 }
 
-// LeanIMTMerkleProof
+export function merkleProofToJSON(p: MerkleProof<bigint>): MerkleProofJSON {
+    return {
+        index: p.index,
+        leaf: p.leaf.toString(),
+        root: p.root.toString(),
+        siblings: p.siblings.map((x) => x.toString())
+    }
+}
+
+export function merkleProofFromJSON(mpj: MerkleProofJSON): MerkleProof<bigint> {
+    return {
+        index: mpj.index,
+        leaf: BigInt(mpj.leaf),
+        root: BigInt(mpj.root),
+        siblings: mpj.siblings.map(BigInt)
+    }
+}
 
 export class ElectionGroupState {
-    public readonly election: `0x${string}`
+    public readonly election: Address
     public groupId!: bigint
-    public depth!: number
-    private group!: Group
-    private commitmentToIndex = new Map<string, number>()
+    public expectedDepth!: number
+    private group: Group = new Group()
+    private readonly commitmentToIndex = new Map<string, number>()
 
-    constructor(election: `0x${string}`) {
+    constructor(election: Address) {
         this.election = election
     }
 
-    init(groupId: bigint, depth: number) {
+    init(groupId: bigint, expectedDepth: number) {
         this.groupId = groupId
-        this.depth = depth
-        this.group = new Group(depth)
+        this.expectedDepth = expectedDepth
+        this.group = new Group()
         this.commitmentToIndex.clear()
     }
 
-    rebuildFromMembers(members: { leafIndex: number; commitment: bigint }[]) {
-        this.group = new Group(this.depth)
-        this.commitmentToIndex.clear()
+    getRoot(): bigint {
+        return this.group.root
+    }
 
+    public get size(): number {
+        return this.group.size
+    }
+
+    getMerkleProof(commitment: bigint): MerkleProof<bigint> {
+        const idx = this.commitmentToIndex.get(commitment.toString())
+        if (idx === undefined) throw new Error("Commitment not found in group")
+
+        return this.group.generateMerkleProof(idx)
+    }
+
+    getMerkleProofJSON(commitment: bigint): MerkleProofJSON {
+        return merkleProofToJSON(this.getMerkleProof(commitment))
+    }
+
+
+    /**
+     *  members must be sorted by leafIndex ASC and contiguous (0 => n-1) for add-only groups.
+     *  @param members
+     */
+    rebuildFromMembers(members: { leafIndex: number; commitment: bigint }[]) {
+        const commitments = members.map((m) => m.commitment)
+        this.group = new Group(commitments)
+
+        this.commitmentToIndex.clear()
         for (const m of members) {
-            // insertion order must match leafIndex order
-            this.group.addMember(m.commitment)
             this.commitmentToIndex.set(m.commitment.toString(), m.leafIndex)
         }
     }
 
+    /**
+     * Apply a MemberAdded event deterministically.
+     * For add-only SemaphoreGroups usage, the leafIndex must equal the current size.
+     * @param commitment
+     * @param leafIndex
+     */
     addMember(commitment: bigint, leafIndex: number) {
-        // guard against duplicates/replays
-        if (this.commitmentToIndex.has(commitment.toString())) return
+        const key = commitment.toString()
 
-        // IMPORTANT: must insert in exact order. If you ever receive out-of-order,
-        // you should rebuild rather than insert incorrectly.
+        if (this.commitmentToIndex.has(key)) return
+
+        const expectedIndex = this.group.size
+        if (leafIndex !== expectedIndex) {
+            throw new Error(
+                `Out-of-order member insert: got index=${leafIndex}, expected=${expectedIndex}`
+            )
+        }
+
         this.group.addMember(commitment)
-        this.commitmentToIndex.set(commitment.toString(), leafIndex)
-    }
-
-    getRoot(): bigint {
-        // @semaphore-protocol/group exposes group.root as bigint-like
-        // Depending on version: root may be bigint or string. Normalize.
-        const r: any = (this.group as any).root
-        return typeof r === "bigint" ? r : BigInt(r)
-    }
-
-    getProofByCommitment(commitment: bigint): MerkleProofDTO {
-        const idx = this.commitmentToIndex.get(commitment.toString())
-        if (idx === undefined) {
-            throw new Error("Commitment not found in group")
-        }
-        const proof: any = (this.group as any).generateMerkleProof(idx)
-        const root = typeof proof.root === "bigint" ? proof.root : BigInt(proof.root)
-
-        return {
-            root: root.toString(),
-            leafIndex: idx,
-            siblings: proof.siblings.map((x: any) => (typeof x === "bigint" ? x : BigInt(x)).toString()),
-            pathIndices: proof.pathIndices.map((n: any) => Number(n))
-        }
+        this.commitmentToIndex.set(key, leafIndex)
     }
 }
