@@ -1,15 +1,15 @@
 // src/semaphore/proof.ts
-import type { Identity } from "@semaphore-protocol/identity";
-import { generateProof, packToSolidityProof } from "@semaphore-protocol/proof";
+import type {Identity} from "@semaphore-protocol/identity";
+import {generateProof, packToSolidityProof} from "@semaphore-protocol/proof";
 
 export type ProofArtifacts = {
     wasmUrl: string; // put files in /public and reference by URL
     zkeyUrl: string;
 };
 
-function toBigInt(s: string) {
-    return BigInt(s);
-}
+// function toBigInt(s: string) {
+//     return BigInt(s);
+// }
 
 export async function generateSemaphoreProof(params: {
     identity: Identity;
@@ -18,7 +18,7 @@ export async function generateSemaphoreProof(params: {
     signal: string;            // your payload (ideally ciphertext/commitment), string is ok
     artifacts: ProofArtifacts;
 }) {
-    const { identity, merkleProof, externalNullifier, signal, artifacts } = params;
+    const {identity, merkleProof, externalNullifier, signal, artifacts} = params;
 
     // Fetch artifacts once; cache in memory in real code
     const [wasm, zkey] = await Promise.all([
@@ -29,19 +29,19 @@ export async function generateSemaphoreProof(params: {
     const fullProof = await generateProof(
         identity,
         {
-            root: toBigInt(merkleProof.root),
-            leaf: toBigInt(merkleProof.leaf),
-            siblings: merkleProof.siblings.map(toBigInt),
+            root: BigInt(merkleProof.root),
+            leaf: BigInt(merkleProof.leaf),
+            siblings: merkleProof.siblings.map(BigInt),
             pathIndices: merkleProof.pathIndices,
         },
-        toBigInt(externalNullifier),
+        BigInt(externalNullifier),
         signal,
-        { wasmFile: new Uint8Array(wasm), zkeyFile: new Uint8Array(zkey) }
+        {wasmFile: new Uint8Array(wasm), zkeyFile: new Uint8Array(zkey)}
     );
 
     return {
         fullProof,
-        solidityProof: packToSolidityProof(fullProof.proof),
-        publicSignals: fullProof.publicSignals,
+        solidityProof: packToSolidityProof((fullProof as any).proof),
+        publicSignals: (fullProof as any).publicSignals,
     };
 }
