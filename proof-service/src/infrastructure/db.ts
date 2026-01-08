@@ -27,8 +27,8 @@ export async function migrate() {
             UNIQUE (election_address, identity_commitment)
         );
 
---         CREATE INDEX IF NOT EXISTS members_commitment_idx
---             ON members (election_address, identity_commitment);
+        --         CREATE INDEX IF NOT EXISTS members_commitment_idx
+        --         ON members (election_address, identity_commitment);
 
         CREATE INDEX IF NOT EXISTS members_by_block
             ON members (election_address, block_number, log_index);
@@ -54,9 +54,12 @@ export async function getSyncCursor(election: string): Promise<SyncCursor> {
     }
 }
 
-// Back-compat for older call sites.
 export async function getLastProcessedBlock(election: string): Promise<bigint> {
     return (await getSyncCursor(election)).blockNumber
+}
+
+export async function setLastProcessedBlock(election: string, block: bigint) {
+    await setSyncCursor(election, {blockNumber: block, blockHash: null})
 }
 
 export async function setSyncCursor(election: string, cursor: SyncCursor) {
@@ -70,11 +73,6 @@ export async function setSyncCursor(election: string, cursor: SyncCursor) {
         `,
         [election, cursor.blockNumber.toString(), cursor.blockHash]
     )
-}
-
-// Back-compat for older call sites.
-export async function setLastProcessedBlock(election: string, block: bigint) {
-    await setSyncCursor(election, {blockNumber: block, blockHash: null})
 }
 
 export async function withTransaction<T>(fn: (client: pg.PoolClient) => Promise<T>): Promise<T> {
