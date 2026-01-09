@@ -18,9 +18,6 @@ export type CreateSemaphoreProofParams = {
     strictLeafCheck?: boolean
 }
 
-/**
- * Pure proof generator: no HTTP, just takes an Identity + MerkleProof + depth.
- */
 export async function createSemaphoreProof(params: CreateSemaphoreProofParams): Promise<SemaphoreProof> {
     const {
         identity,
