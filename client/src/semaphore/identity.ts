@@ -1,7 +1,6 @@
 import {Identity} from "@semaphore-protocol/identity";
 import CryptoJS from "crypto-js";
 import WordArray from "crypto-js/lib-typedarrays";
-import {poseidon2} from "poseidon-lite/poseidon2"
 
 function wordArrayToUint8Array(wordArray: WordArray): Uint8Array {
     const words = wordArray.words;
@@ -31,18 +30,8 @@ export function generateIdentity(password: string, userId: string): Identity {
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
 
-
-    const identity = new Identity(secretHex);
-
-    console.log("Generated Secure Identity");
-    console.log("Commitment:", identity.commitment.toString());
-
-    return identity;
+    // Semaphore Identity constructor accepts a string seed.
+    return new Identity(secretHex);
 }
 
-const identity: Identity = generateIdentity("password123", "1gdg,gafafgafgfd,fg");
-const pk = identity.publicKey;
-const computed = poseidon2([pk[0], pk[1]])
-
-console.log(computed.toString())
-console.log(computed === identity.commitment)
+// Note: no top-level code here on purpose. Importing this module must be side-effect free.

@@ -1,47 +1,110 @@
-// src/semaphore/proof.ts
-import type {Identity} from "@semaphore-protocol/identity";
-import {generateProof, packToSolidityProof} from "@semaphore-protocol/proof";
+import {Identity} from "@semaphore-protocol/identity"
+import type {MerkleProof} from "@semaphore-protocol/group"
+import {generateProof, type SemaphoreProof} from "@semaphore-protocol/proof"
+import type {SnarkArtifacts} from "@zk-kit/artifacts"
+import {isAddress} from "viem"
 
-export type ProofArtifacts = {
-    wasmUrl: string; // put files in /public and reference by URL
-    zkeyUrl: string;
-};
+import {fetchElectionMerkleProof, toMerkleProof} from "./group"
 
-// function toBigInt(s: string) {
-//     return BigInt(s);
-// }
+export type CreateSemaphoreProofParams = {
+    identity: Identity
+    merkleProof: MerkleProof
+    merkleDepth: number
+    /** Your vote payload (e.g., candidateId). */
+    message: string | number | bigint | Uint8Array
+    scope: string | number | bigint | Uint8Array
+    snarkArtifacts?: SnarkArtifacts
+    /** Extra safety checks (recommended on). */
+    strictLeafCheck?: boolean
+}
 
-export async function generateSemaphoreProof(params: {
-    identity: Identity;
-    merkleProof: { root: string; leaf: string; siblings: string[]; pathIndices: number[] };
-    externalNullifier: string; // election id hashed/encoded as field element string
-    signal: string;            // your payload (ideally ciphertext/commitment), string is ok
-    artifacts: ProofArtifacts;
-}) {
-    const {identity, merkleProof, externalNullifier, signal, artifacts} = params;
-
-    // Fetch artifacts once; cache in memory in real code
-    const [wasm, zkey] = await Promise.all([
-        fetch(artifacts.wasmUrl).then(r => r.arrayBuffer()),
-        fetch(artifacts.zkeyUrl).then(r => r.arrayBuffer()),
-    ]);
-
-    const fullProof = await generateProof(
+/**
+ * Pure proof generator: no HTTP, just takes an Identity + MerkleProof + depth.
+ */
+export async function createSemaphoreProof(params: CreateSemaphoreProofParams): Promise<SemaphoreProof> {
+    const {
         identity,
-        {
-            root: BigInt(merkleProof.root),
-            leaf: BigInt(merkleProof.leaf),
-            siblings: merkleProof.siblings.map(BigInt),
-            pathIndices: merkleProof.pathIndices,
-        },
-        BigInt(externalNullifier),
-        signal,
-        {wasmFile: new Uint8Array(wasm), zkeyFile: new Uint8Array(zkey)}
-    );
+        merkleProof,
+        merkleDepth,
+        message,
+        scope,
+        snarkArtifacts,
+        strictLeafCheck = true
+    } = params
 
-    return {
-        fullProof,
-        solidityProof: packToSolidityProof((fullProof as any).proof),
-        publicSignals: (fullProof as any).publicSignals,
-    };
+    if (strictLeafCheck && merkleProof.leaf !== identity.commitment) {
+        throw new Error(
+            `Merkle proof leaf mismatch. Got leaf=${merkleProof.leaf.toString()} ` +
+            `but identity.commitment=${identity.commitment.toString()}`
+        )
+    }
+
+    return generateProof(identity, merkleProof, message, scope, merkleDepth, snarkArtifacts)
+}
+
+export type CreateSemaphoreProofViaFastifyParams = {
+    fastifyBaseUrl: string
+    electionAddress: string
+    identity: Identity
+    /** Your vote payload (e.g., candidateId). */
+    message: string | number | bigint | Uint8Array
+    scope: string | number | bigint | Uint8Array
+    snarkArtifacts?: SnarkArtifacts
+    headers?: Record<string, string>
+    signal?: AbortSignal
+    /** Extra safety checks (recommended on). */
+    strictLeafCheck?: boolean
+    strictDepthCheck?: boolean
+}
+
+/**
+ * Convenience helper: fetch Merkle proof from Fastify, then generate Semaphore proof.
+ */
+export async function createSemaphoreProofViaFastify(params: CreateSemaphoreProofViaFastifyParams): Promise<SemaphoreProof> {
+    const {
+        fastifyBaseUrl,
+        electionAddress,
+        identity,
+        message,
+        scope,
+        snarkArtifacts,
+        headers,
+        signal,
+        strictLeafCheck = true,
+        strictDepthCheck = true
+    } = params
+
+    if (!isAddress(electionAddress)) {
+        throw new Error(`Invalid electionAddress: ${electionAddress}`)
+    }
+
+    const commitmentDec = identity.commitment.toString() // server expects /^\d+$/ (decimal)
+
+    const dto = await fetchElectionMerkleProof({
+        fastifyBaseUrl,
+        electionAddress,
+        commitmentDec,
+        headers,
+        signal
+    })
+
+    const merkleProof = toMerkleProof(dto)
+
+    if (strictDepthCheck && dto.expectedDepth !== merkleProof.siblings.length) {
+        // siblings length is the merkle depth for binary IMT proofs
+        throw new Error(
+            `Merkle proof depth mismatch. expectedDepth=${dto.expectedDepth} but siblings.length=${merkleProof.siblings.length}`
+        )
+    }
+
+    // Fastify already checks onChainRoot === proof.root and returns 409 if mismatch.
+    return createSemaphoreProof({
+        identity,
+        merkleProof,
+        merkleDepth: dto.expectedDepth,
+        message,
+        scope,
+        snarkArtifacts,
+        strictLeafCheck
+    })
 }
