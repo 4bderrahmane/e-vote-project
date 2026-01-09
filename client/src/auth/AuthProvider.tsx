@@ -45,7 +45,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
                 onLoad: "check-sso",
                 pkceMethod: "S256",
                 checkLoginIframe: false,
-                silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html",
+                silentCheckSsoRedirectUri: globalThis.location.origin + "/silent-check-sso.html",
                 enableLogging: import.meta.env.DEV, // dev only
             })
             .then((authenticated) => {
