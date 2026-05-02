@@ -1,6 +1,7 @@
 .git
 .gitignore
 .idea
+.migration
 target
 .env
 *.iml

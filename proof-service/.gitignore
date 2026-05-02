@@ -4,6 +4,8 @@ dist/
 build/
 *.tsbuildinfo
 
+.codex
+.claude
 .env
 .env.local
 .env.*.local

@@ -36,3 +36,5 @@ HELP.md
 # OS specific
 .DS_Store
 Thumbs.db
+
+.migration
