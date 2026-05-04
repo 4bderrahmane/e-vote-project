@@ -173,16 +173,16 @@
         "password": "Mot de passe d'identité",
         "passwordConfirm": "Confirmer le mot de passe d'identité"
       },
-      "vaultPresent": "Présent sur ce navigateur",
-      "vaultMissing": "Absent sur ce navigateur",
+      "vaultPresent": "Présent pour ce compte",
+      "vaultMissing": "Absent pour ce compte",
       "loadingRegistration": "Chargement de votre statut d'inscription...",
       "placeholders": {
         "passwordUnlock": "Déverrouillez votre identité électorale locale",
         "passwordCreate": "Créez un mot de passe pour votre identité électorale locale",
         "passwordConfirm": "Répétez le même mot de passe"
       },
-      "vaultHintPresent": "Ce navigateur stocke déjà votre coffre d'identité électorale chiffré. Utilisez le même mot de passe que lors de votre première inscription.",
-      "vaultHintMissing": "Aucun coffre d'identité électorale local n'a été trouvé. L'inscription va en créer un dans ce navigateur et le réutiliser pour voter.",
+      "vaultHintPresent": "Ce navigateur stocke un coffre d'identité électorale chiffré pour ce compte. Utilisez le même mot de passe que lors de votre première inscription.",
+      "vaultHintMissing": "Aucun coffre d'identité électorale local n'a été trouvé pour ce compte. L'inscription va en créer un dans ce navigateur et le réutiliser pour voter.",
       "registering": "Inscription de l'identité...",
       "refreshRegistration": "Actualiser l'inscription",
       "registerAction": "S'inscrire pour voter",
@@ -199,10 +199,12 @@
       },
       "errors": {
         "registrationLoadFailed": "Impossible de charger votre statut d'inscription pour cette élection.",
+        "authenticationRequired": "Vous devez être connecté pour utiliser votre identité de vote.",
         "externalNullifierMissing": "Le nullifier externe de l'élection est manquant.",
         "passwordRequired": "Le mot de passe d'identité est obligatoire.",
         "passwordConfirmRequired": "Confirmez votre mot de passe d'identité pour créer un coffre local.",
         "passwordMismatch": "La confirmation du mot de passe d'identité ne correspond pas.",
+        "vaultMissing": "Aucun coffre d'identité électorale local n'a été trouvé pour ce compte. Utilisez le navigateur sur lequel vous avez enregistré cette identité.",
         "registrationSubmitFailed": "Impossible d'enregistrer votre identité de vote pour cette élection.",
         "registrationRequired": "Terminez l'inscription électorale avant de voter.",
         "alreadyCast": "Vous avez déjà soumis un bulletin pour cette élection.",

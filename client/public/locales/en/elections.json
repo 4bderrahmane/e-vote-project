@@ -173,16 +173,16 @@
         "password": "Identity password",
         "passwordConfirm": "Confirm identity password"
       },
-      "vaultPresent": "Present on this browser",
-      "vaultMissing": "Missing on this browser",
+      "vaultPresent": "Present for this account",
+      "vaultMissing": "Missing for this account",
       "loadingRegistration": "Loading your registration status...",
       "placeholders": {
         "passwordUnlock": "Unlock your local voter identity",
         "passwordCreate": "Create a password for your local voter identity",
         "passwordConfirm": "Repeat the same password"
       },
-      "vaultHintPresent": "This browser already stores your encrypted voter identity vault. Use the same password you used when you first registered.",
-      "vaultHintMissing": "No local voter identity vault was found. Registering now will create one in this browser and reuse it for voting.",
+      "vaultHintPresent": "This browser stores an encrypted voter identity vault for this account. Use the same password you used when you first registered.",
+      "vaultHintMissing": "No local voter identity vault was found for this account. Registering now will create one in this browser and reuse it for voting.",
       "registering": "Registering identity...",
       "refreshRegistration": "Refresh registration",
       "registerAction": "Register to vote",
@@ -199,10 +199,12 @@
       },
       "errors": {
         "registrationLoadFailed": "Unable to load your registration status for this election.",
+        "authenticationRequired": "You must be signed in to use your voter identity.",
         "externalNullifierMissing": "Election external nullifier is missing.",
         "passwordRequired": "Identity password is required.",
         "passwordConfirmRequired": "Confirm your identity password to create a local voter vault.",
         "passwordMismatch": "Identity password confirmation does not match.",
+        "vaultMissing": "No local voter identity vault was found for this account. Use the browser where you registered this identity.",
         "registrationSubmitFailed": "Unable to register your voting identity for this election.",
         "registrationRequired": "Complete voter registration before casting a vote.",
         "alreadyCast": "You have already submitted a ballot for this election.",
