@@ -21,7 +21,7 @@ public class TokenInterceptor implements Interceptor
     @Override
     public Response intercept(Chain chain) throws IOException
     {
-        String token = authManager.getAccessToken();
+        String token = authManager.getValidAccessToken();
         Request original = chain.request();
 
         if (token == null)
