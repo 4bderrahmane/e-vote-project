@@ -7,16 +7,13 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.privote.mobile.network.dto.ElectionDto;
 import com.privote.mobile.repository.ElectionRepository;
-
-import java.util.List;
 
 public class ElectionViewModel extends AndroidViewModel
 {
 
     private final ElectionRepository repository;
-    private MutableLiveData<List<ElectionDto>> electionsLiveData;
+    private MutableLiveData<ElectionRepository.ElectionListResult> electionsLiveData;
 
     public ElectionViewModel(@NonNull Application application)
     {
@@ -24,7 +21,7 @@ public class ElectionViewModel extends AndroidViewModel
         repository = new ElectionRepository(application);
     }
 
-    public LiveData<List<ElectionDto>> getElections()
+    public LiveData<ElectionRepository.ElectionListResult> getElections()
     {
         if (electionsLiveData == null)
         {
@@ -41,7 +38,7 @@ public class ElectionViewModel extends AndroidViewModel
 
     private void loadElections()
     {
-        repository.getElections().observeForever(elections ->
-                electionsLiveData.setValue(elections));
+        repository.getElections().observeForever(result ->
+                electionsLiveData.setValue(result));
     }
 }
