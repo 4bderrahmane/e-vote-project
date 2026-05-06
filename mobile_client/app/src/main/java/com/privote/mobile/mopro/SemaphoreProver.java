@@ -127,7 +127,7 @@ public final class SemaphoreProver
 
             if (!destination.isFile() || destination.length() == 0)
             {
-                copyAssetToFile(ZKEY_ASSET_PATH, destination);
+                copyAssetToFile(destination);
             }
 
             cachedZkeyFile = destination;
@@ -135,9 +135,9 @@ public final class SemaphoreProver
         }
     }
 
-    private void copyAssetToFile(String assetPath, File destination) throws IOException
+    private void copyAssetToFile(File destination) throws IOException
     {
-        try (InputStream in = appContext.getAssets().open(assetPath);
+        try (InputStream in = appContext.getAssets().open(SemaphoreProver.ZKEY_ASSET_PATH);
              OutputStream out = new FileOutputStream(destination))
         {
             byte[] buffer = new byte[64 * 1024];
