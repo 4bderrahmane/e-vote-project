@@ -27,14 +27,33 @@ public class LoginActivity extends AppCompatActivity
         authManager = AuthManager.getInstance(this);
         setContentView(binding.getRoot());
 
+        binding.btnCreateAccount.setOnClickListener(v -> startLogin());
         binding.btnLogin.setOnClickListener(v -> startLogin());
     }
 
     private void startLogin()
     {
+        binding.btnCreateAccount.setEnabled(false);
         binding.btnLogin.setEnabled(false);
         binding.progressBar.setVisibility(View.VISIBLE);
-        authManager.startLoginFlow(this, RC_AUTH);
+        authManager.startLoginFlow(this, RC_AUTH, new AuthManager.AuthCallback()
+        {
+            @Override
+            public void onSuccess()
+            {
+                // Success is handled after redirect + token exchange in onActivityResult.
+            }
+
+            @Override
+            public void onError(String message)
+            {
+                runOnUiThread(() ->
+                {
+                    Toast.makeText(LoginActivity.this, "Login failed: " + message, Toast.LENGTH_LONG).show();
+                    resetUi();
+                });
+            }
+        });
     }
 
     @Override
@@ -73,6 +92,7 @@ public class LoginActivity extends AppCompatActivity
 
     private void resetUi()
     {
+        binding.btnCreateAccount.setEnabled(true);
         binding.btnLogin.setEnabled(true);
         binding.progressBar.setVisibility(View.GONE);
     }

@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.privote.mobile.R;
 import com.privote.mobile.network.dto.ElectionDto;
+import com.privote.mobile.util.DateFormatUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +64,7 @@ public class ElectionAdapter extends RecyclerView.Adapter<ElectionAdapter.ViewHo
         private final TextView tvTitle;
         private final TextView tvDescription;
         private final TextView tvPhase;
+        private final TextView tvDates;
 
         ViewHolder(@NonNull View itemView)
         {
@@ -70,14 +72,28 @@ public class ElectionAdapter extends RecyclerView.Adapter<ElectionAdapter.ViewHo
             tvTitle = itemView.findViewById(R.id.tvTitle);
             tvDescription = itemView.findViewById(R.id.tvDescription);
             tvPhase = itemView.findViewById(R.id.tvPhase);
+            tvDates = itemView.findViewById(R.id.tvDates);
         }
 
         void bind(ElectionDto election, OnElectionClickListener listener)
         {
-            tvTitle.setText(election.title);
-            tvDescription.setText(election.description != null ? election.description : "");
-            tvPhase.setText(election.phase);
+            tvTitle.setText(nonEmpty(election.title, "Untitled election"));
+            tvDescription.setText(nonEmpty(election.description, "No description"));
+            tvPhase.setText(nonEmpty(election.phase, "UNKNOWN"));
+            tvDates.setText(formatDates(election));
             itemView.setOnClickListener(v -> listener.onElectionClick(election));
+        }
+
+        private static String formatDates(ElectionDto election)
+        {
+            String start = DateFormatUtils.dateTime(election.startTime);
+            String end = DateFormatUtils.dateTime(election.endTime);
+            return start + " - " + end;
+        }
+
+        private static String nonEmpty(String value, String fallback)
+        {
+            return value == null || value.trim().isEmpty() ? fallback : value;
         }
     }
 }

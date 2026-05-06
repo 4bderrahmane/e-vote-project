@@ -1,4 +1,4 @@
-package com.privote.mobile.ui.elections;
+package com.privote.mobile.ui.results;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,16 +12,14 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.privote.mobile.databinding.FragmentElectionListBinding;
-import com.privote.mobile.network.dto.ElectionDto;
-import com.privote.mobile.viewmodel.ElectionViewModel;
+import com.privote.mobile.databinding.FragmentResultsBinding;
+import com.privote.mobile.viewmodel.ResultsViewModel;
 
-public class ElectionListFragment extends Fragment
+public class ResultsFragment extends Fragment
 {
-
-    private FragmentElectionListBinding binding;
-    private ElectionViewModel viewModel;
-    private ElectionAdapter adapter;
+    private FragmentResultsBinding binding;
+    private ResultsViewModel viewModel;
+    private ResultsAdapter adapter;
 
     @Nullable
     @Override
@@ -29,7 +27,7 @@ public class ElectionListFragment extends Fragment
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState)
     {
-        binding = FragmentElectionListBinding.inflate(inflater, container, false);
+        binding = FragmentResultsBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
@@ -37,20 +35,20 @@ public class ElectionListFragment extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
-
-        adapter = new ElectionAdapter(this::onElectionClick);
+        adapter = new ResultsAdapter();
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recyclerView.setAdapter(adapter);
 
+        viewModel = new ViewModelProvider(this).get(ResultsViewModel.class);
         binding.swipeRefresh.setOnRefreshListener(() -> viewModel.refresh());
 
-        viewModel = new ViewModelProvider(this).get(ElectionViewModel.class);
-        viewModel.getElections().observe(getViewLifecycleOwner(), result ->
+        showMessage("Loading results...");
+        viewModel.getResults().observe(getViewLifecycleOwner(), result ->
         {
             binding.swipeRefresh.setRefreshing(false);
             if (result == null)
             {
-                showMessage("Loading elections...");
+                showMessage("Loading results...");
                 return;
             }
 
@@ -61,39 +59,24 @@ public class ElectionListFragment extends Fragment
                 return;
             }
 
-            if (result.elections == null || result.elections.isEmpty())
+            if (result.results == null || result.results.isEmpty())
             {
-                showMessage("No elections available");
-            } else
-            {
-                binding.tvEmpty.setVisibility(View.GONE);
-                binding.recyclerView.setVisibility(View.VISIBLE);
-                adapter.setElections(result.elections);
+                showMessage("No results available");
+                return;
             }
+
+            binding.tvEmpty.setVisibility(View.GONE);
+            binding.recyclerView.setVisibility(View.VISIBLE);
+            adapter.setResults(result.results);
         });
     }
 
     private void showMessage(String message)
     {
+        adapter.setResults(null);
         binding.tvEmpty.setText(message);
         binding.tvEmpty.setVisibility(View.VISIBLE);
         binding.recyclerView.setVisibility(View.GONE);
-        adapter.setElections(null);
-    }
-
-    private void onElectionClick(ElectionDto election)
-    {
-        if (election.publicId == null)
-        {
-            Toast.makeText(requireContext(), "Election ID is missing", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        requireActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .replace(((ViewGroup) requireView().getParent()).getId(), ElectionDetailFragment.newInstance(election.publicId))
-                .addToBackStack(null)
-                .commit();
     }
 
     @Override
