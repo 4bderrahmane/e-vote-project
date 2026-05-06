@@ -63,9 +63,9 @@ public class PartyAdapter extends RecyclerView.Adapter<PartyAdapter.ViewHolder>
 
         void bind(PartyDto party)
         {
-            tvName.setText(nonEmpty(party.name, "Unnamed party"));
-            tvAbbreviation.setText(nonEmpty(party.abbreviation, "PARTY"));
-            tvDescription.setText(nonEmpty(party.description, "No description"));
+            tvName.setText(nonEmpty(party.getName(), "Unnamed party"));
+            tvAbbreviation.setText(nonEmpty(party.getAbbreviation(), "PARTY"));
+            tvDescription.setText(nonEmpty(party.getDescription(), "No description"));
         }
 
         private static String nonEmpty(String value, String fallback)

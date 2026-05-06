@@ -83,7 +83,7 @@ public class ElectionListFragment extends Fragment
 
     private void onElectionClick(ElectionDto election)
     {
-        if (election.publicId == null)
+        if (election.getPublicId() == null)
         {
             Toast.makeText(requireContext(), "Election ID is missing", Toast.LENGTH_SHORT).show();
             return;
@@ -91,7 +91,7 @@ public class ElectionListFragment extends Fragment
 
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
-                .replace(((ViewGroup) requireView().getParent()).getId(), ElectionDetailFragment.newInstance(election.publicId))
+                .replace(((ViewGroup) requireView().getParent()).getId(), ElectionDetailFragment.newInstance(election.getPublicId()))
                 .addToBackStack(null)
                 .commit();
     }

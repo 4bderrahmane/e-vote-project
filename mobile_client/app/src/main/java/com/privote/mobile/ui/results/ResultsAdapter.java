@@ -62,14 +62,14 @@ public class ResultsAdapter extends RecyclerView.Adapter<ResultsAdapter.ViewHold
 
         void bind(ElectionResultDto result)
         {
-            tvTitle.setText(nonEmpty(result.electionTitle, "Election results"));
+            tvTitle.setText(nonEmpty(result.getElectionTitle(), "Election results"));
             tvSummary.setText(
-                    (result.published ? "Published" : "Not published") + "\n"
-                            + result.talliedBallots + " of " + result.totalVotes + " ballots tallied\n"
-                            + result.registeredVoters + " registered voters\n"
-                            + "Turnout " + String.format("%.1f%%", result.turnoutPercentage)
+                    (result.isPublished() ? "Published" : "Not published") + "\n"
+                            + result.getTalliedBallots() + " of " + result.getTotalVotes() + " ballots tallied\n"
+                            + result.getRegisteredVoters() + " registered voters\n"
+                            + "Turnout " + String.format("%.1f%%", result.getTurnoutPercentage())
             );
-            tvCandidates.setText(formatCandidates(result.candidates));
+            tvCandidates.setText(formatCandidates(result.getCandidates()));
         }
 
         private static String formatCandidates(List<ElectionResultCandidateDto> candidates)
@@ -83,15 +83,15 @@ public class ResultsAdapter extends RecyclerView.Adapter<ResultsAdapter.ViewHold
             for (ElectionResultCandidateDto candidate : candidates)
             {
                 if (builder.length() > 0) builder.append('\n');
-                builder.append(nonEmpty(candidate.fullName, "Candidate"))
+                builder.append(nonEmpty(candidate.getFullName(), "Candidate"))
                         .append(" - ")
-                        .append(candidate.votes)
+                        .append(candidate.getVotes())
                         .append(" votes (")
-                        .append(String.format("%.1f%%", candidate.percentage))
+                        .append(String.format("%.1f%%", candidate.getPercentage()))
                         .append(')');
-                if (candidate.partyName != null && !candidate.partyName.trim().isEmpty())
+                if (candidate.getPartyName() != null && !candidate.getPartyName().trim().isEmpty())
                 {
-                    builder.append(" / ").append(candidate.partyName);
+                    builder.append(" / ").append(candidate.getPartyName());
                 }
             }
             return builder.toString();

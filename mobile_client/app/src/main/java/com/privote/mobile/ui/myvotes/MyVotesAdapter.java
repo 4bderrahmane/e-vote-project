@@ -62,12 +62,12 @@ public class MyVotesAdapter extends RecyclerView.Adapter<MyVotesAdapter.ViewHold
 
         void bind(MyVotesRepository.MyVoteItem item)
         {
-            tvTitle.setText(item.election.title == null ? "Election" : item.election.title);
-            tvStatus.setText(formatStatus(item.registration.participationStatus));
+            tvTitle.setText(item.election.getTitle() == null ? "Election" : item.election.getTitle());
+            tvStatus.setText(formatStatus(item.registration.getParticipationStatus()));
             tvDetails.setText(
-                    "Commitment: " + nonEmpty(item.registration.commitmentStatus, "-") + "\n"
-                            + "Registered at: " + DateFormatUtils.dateTime(item.registration.registeredAt) + "\n"
-                            + "Transaction: " + nonEmpty(item.registration.transactionHash, "-")
+                    "Commitment: " + nonEmpty(item.registration.getCommitmentStatus(), "-") + "\n"
+                            + "Registered at: " + DateFormatUtils.dateTime(item.registration.getRegisteredAt()) + "\n"
+                            + "Transaction: " + nonEmpty(item.registration.getTransactionHash(), "-")
             );
         }
 

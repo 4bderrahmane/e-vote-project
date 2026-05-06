@@ -84,14 +84,14 @@ public class ProfileFragment extends Fragment
         binding.tvMessage.setVisibility(View.GONE);
         binding.tvName.setText(fullName(profile));
         binding.tvDetails.setText(
-                "Email: " + nonEmpty(profile.email, "-") + "\n"
-                        + "CIN: " + nonEmpty(profile.cin, "-") + "\n"
-                        + "Phone: " + nonEmpty(profile.phoneNumber, "-") + "\n"
-                        + "Address: " + nonEmpty(profile.address, "-") + "\n"
-                        + "Region: " + nonEmpty(profile.region, "-") + "\n"
-                        + "Birth place: " + nonEmpty(profile.birthPlace, "-") + "\n"
-                        + "Birth date: " + DateFormatUtils.date(profile.birthDate) + "\n"
-                        + "Email verified: " + (profile.emailVerified ? "Yes" : "No")
+                "Email: " + nonEmpty(profile.getEmail(), "-") + "\n"
+                        + "CIN: " + nonEmpty(profile.getCin(), "-") + "\n"
+                        + "Phone: " + nonEmpty(profile.getPhoneNumber(), "-") + "\n"
+                        + "Address: " + nonEmpty(profile.getAddress(), "-") + "\n"
+                        + "Region: " + nonEmpty(profile.getRegion(), "-") + "\n"
+                        + "Birth place: " + nonEmpty(profile.getBirthPlace(), "-") + "\n"
+                        + "Birth date: " + DateFormatUtils.date(profile.getBirthDate()) + "\n"
+                        + "Email verified: " + (profile.isEmailVerified() ? "Yes" : "No")
         );
         populateEditForm(profile);
     }
@@ -120,14 +120,14 @@ public class ProfileFragment extends Fragment
 
     private void populateEditForm(CitizenDto profile)
     {
-        binding.inputFirstName.setText(emptyIfNull(profile.firstName));
-        binding.inputLastName.setText(emptyIfNull(profile.lastName));
-        binding.inputEmail.setText(emptyIfNull(profile.email));
-        binding.inputPhone.setText(emptyIfNull(profile.phoneNumber));
-        binding.inputAddress.setText(emptyIfNull(profile.address));
-        binding.inputRegion.setText(emptyIfNull(profile.region));
-        binding.inputBirthPlace.setText(emptyIfNull(profile.birthPlace));
-        binding.inputBirthDate.setText(emptyIfNull(profile.birthDate));
+        binding.inputFirstName.setText(emptyIfNull(profile.getFirstName()));
+        binding.inputLastName.setText(emptyIfNull(profile.getLastName()));
+        binding.inputEmail.setText(emptyIfNull(profile.getEmail()));
+        binding.inputPhone.setText(emptyIfNull(profile.getPhoneNumber()));
+        binding.inputAddress.setText(emptyIfNull(profile.getAddress()));
+        binding.inputRegion.setText(emptyIfNull(profile.getRegion()));
+        binding.inputBirthPlace.setText(emptyIfNull(profile.getBirthPlace()));
+        binding.inputBirthDate.setText(emptyIfNull(profile.getBirthDate()));
     }
 
     private void saveProfile()
@@ -140,14 +140,14 @@ public class ProfileFragment extends Fragment
         }
 
         CitizenSelfUpdateRequestDto request = new CitizenSelfUpdateRequestDto();
-        request.firstName = clean(binding.inputFirstName.getText().toString());
-        request.lastName = clean(binding.inputLastName.getText().toString());
-        request.email = clean(binding.inputEmail.getText().toString());
-        request.phoneNumber = clean(binding.inputPhone.getText().toString());
-        request.address = clean(binding.inputAddress.getText().toString());
-        request.region = clean(binding.inputRegion.getText().toString());
-        request.birthPlace = clean(binding.inputBirthPlace.getText().toString());
-        request.birthDate = birthDate;
+        request.setFirstName(clean(binding.inputFirstName.getText().toString()));
+        request.setLastName(clean(binding.inputLastName.getText().toString()));
+        request.setEmail(clean(binding.inputEmail.getText().toString()));
+        request.setPhoneNumber(clean(binding.inputPhone.getText().toString()));
+        request.setAddress(clean(binding.inputAddress.getText().toString()));
+        request.setRegion(clean(binding.inputRegion.getText().toString()));
+        request.setBirthPlace(clean(binding.inputBirthPlace.getText().toString()));
+        request.setBirthDate(birthDate);
 
         setSaving(true);
         viewModel.updateProfile(request);
@@ -162,10 +162,10 @@ public class ProfileFragment extends Fragment
 
     private static String fullName(CitizenDto profile)
     {
-        String firstName = nonEmpty(profile.firstName, "");
-        String lastName = nonEmpty(profile.lastName, "");
+        String firstName = nonEmpty(profile.getFirstName(), "");
+        String lastName = nonEmpty(profile.getLastName(), "");
         String name = (firstName + " " + lastName).trim();
-        return name.isEmpty() ? nonEmpty(profile.username, "Profile") : name;
+        return name.isEmpty() ? nonEmpty(profile.getUsername(), "Profile") : name;
     }
 
     private static String nonEmpty(String value, String fallback)

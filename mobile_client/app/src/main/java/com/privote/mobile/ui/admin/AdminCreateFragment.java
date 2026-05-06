@@ -98,15 +98,15 @@ public class AdminCreateFragment extends Fragment
         }
 
         ElectionCreateRequestDto request = new ElectionCreateRequestDto();
-        request.title = title;
-        request.description = clean(binding.inputElectionDescription.getText().toString());
-        request.startTime = toInstant(clean(binding.inputElectionStart.getText().toString()));
-        request.endTime = toInstant(end);
-        request.phase = clean(binding.inputElectionPhase.getText().toString());
-        request.coordinatorKeycloakId = coordinatorId;
-        request.encryptionPublicKey = publicKey;
+        request.setTitle(title);
+        request.setDescription(clean(binding.inputElectionDescription.getText().toString()));
+        request.setStartTime(toInstant(clean(binding.inputElectionStart.getText().toString())));
+        request.setEndTime(toInstant(end));
+        request.setPhase(clean(binding.inputElectionPhase.getText().toString()));
+        request.setCoordinatorKeycloakId(coordinatorId);
+        request.setEncryptionPublicKey(publicKey);
 
-        if (request.endTime == null)
+        if (request.getEndTime() == null)
         {
             showMessage("End time must use YYYY-MM-DD HH:mm");
             return;
@@ -126,10 +126,10 @@ public class AdminCreateFragment extends Fragment
         }
 
         PartyCreateRequestDto request = new PartyCreateRequestDto();
-        request.name = name;
-        request.abbreviation = clean(binding.inputPartyAbbreviation.getText().toString());
-        request.description = clean(binding.inputPartyDescription.getText().toString());
-        request.memberCins = memberCins;
+        request.setName(name);
+        request.setAbbreviation(clean(binding.inputPartyAbbreviation.getText().toString()));
+        request.setDescription(clean(binding.inputPartyDescription.getText().toString()));
+        request.setMemberCins(memberCins);
         submitParty(request);
     }
 

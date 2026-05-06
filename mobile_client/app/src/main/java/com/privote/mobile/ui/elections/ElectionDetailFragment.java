@@ -168,16 +168,16 @@ public class ElectionDetailFragment extends Fragment
     {
         currentElection = election;
         binding.tvMessage.setVisibility(View.GONE);
-        binding.tvTitle.setText(nonEmpty(election.title, "Untitled election"));
-        binding.tvPhase.setText(nonEmpty(election.phase, "UNKNOWN"));
-        binding.tvDescription.setText(nonEmpty(election.description, "No description"));
+        binding.tvTitle.setText(nonEmpty(election.getTitle(), "Untitled election"));
+        binding.tvPhase.setText(nonEmpty(election.getPhase(), "UNKNOWN"));
+        binding.tvDescription.setText(nonEmpty(election.getDescription(), "No description"));
         binding.tvDetails.setText(
-                "Public ID: " + value(election.publicId == null ? null : election.publicId.toString()) + "\n"
-                        + "Start time: " + DateFormatUtils.dateTime(election.startTime) + "\n"
-                        + "End time: " + DateFormatUtils.dateTime(election.endTime) + "\n"
-                        + "Contract address: " + value(election.contractAddress) + "\n"
-                        + "Created at: " + DateFormatUtils.dateTime(election.createdAt) + "\n"
-                        + "Updated at: " + DateFormatUtils.dateTime(election.updatedAt)
+                "Public ID: " + value(election.getPublicId() == null ? null : election.getPublicId().toString()) + "\n"
+                        + "Start time: " + DateFormatUtils.dateTime(election.getStartTime()) + "\n"
+                        + "End time: " + DateFormatUtils.dateTime(election.getEndTime()) + "\n"
+                        + "Contract address: " + value(election.getContractAddress()) + "\n"
+                        + "Created at: " + DateFormatUtils.dateTime(election.getCreatedAt()) + "\n"
+                        + "Updated at: " + DateFormatUtils.dateTime(election.getUpdatedAt())
         );
         updateCards();
     }
@@ -261,11 +261,11 @@ public class ElectionDetailFragment extends Fragment
         boolean registrationPhase = isRegistrationPhase(currentElection);
         boolean votingPhase = isVotingPhase(currentElection);
         boolean registered = currentRegistration != null;
-        boolean voteCast = registered && "CAST".equalsIgnoreCase(currentRegistration.participationStatus);
+        boolean voteCast = registered && "CAST".equalsIgnoreCase(currentRegistration.getParticipationStatus());
         boolean adminCanStart = isAdminMode()
                 && registrationPhase
-                && currentElection.contractAddress != null
-                && !currentElection.contractAddress.trim().isEmpty();
+                && currentElection.getContractAddress() != null
+                && !currentElection.getContractAddress().trim().isEmpty();
         return new ElectionUiState(registrationPhase, votingPhase, registered, voteCast, adminCanStart);
     }
 
@@ -345,7 +345,7 @@ public class ElectionDetailFragment extends Fragment
             return;
         }
 
-        if (currentElection.externalNullifier == null || currentElection.externalNullifier.isEmpty())
+        if (currentElection.getExternalNullifier() == null || currentElection.getExternalNullifier().isEmpty())
         {
             showRegisterMessage("Election is not ready for registration yet (no external nullifier).");
             return;
@@ -355,7 +355,7 @@ public class ElectionDetailFragment extends Fragment
         binding.btnRegister.setText(getString(com.privote.mobile.R.string.register_button_busy));
         showRegisterMessage("Deriving identity on-device…");
 
-        String externalNullifier = currentElection.externalNullifier;
+        String externalNullifier = currentElection.getExternalNullifier();
         backgroundExecutor.execute(() ->
         {
             try
@@ -403,7 +403,7 @@ public class ElectionDetailFragment extends Fragment
 
     private void startVoting()
     {
-        if (currentElection == null || currentElection.publicId == null)
+        if (currentElection == null || currentElection.getPublicId() == null)
         {
             showAdminMessage("Election is not loaded.");
             return;
@@ -413,7 +413,7 @@ public class ElectionDetailFragment extends Fragment
         binding.btnStartElection.setText("Starting voting…");
         showAdminMessage("Starting election on chain…");
 
-        electionRepository.startElection(currentElection.publicId).observe(getViewLifecycleOwner(), result ->
+        electionRepository.startElection(currentElection.getPublicId()).observe(getViewLifecycleOwner(), result ->
         {
             if (result == null) return;
 
@@ -455,7 +455,7 @@ public class ElectionDetailFragment extends Fragment
         }
 
         CandidateDto candidate = candidateAdapter.getSelected();
-        if (candidate == null || candidate.publicId == null)
+        if (candidate == null || candidate.getPublicId() == null)
         {
             showVoteMessage("Select a candidate.");
             return null;
@@ -475,30 +475,30 @@ public class ElectionDetailFragment extends Fragment
             return null;
         }
 
-        if (currentElection.publicId == null
-                || currentElection.contractAddress == null
-                || currentElection.externalNullifier == null
-                || currentElection.externalNullifier.isEmpty())
+        if (currentElection.getPublicId() == null
+                || currentElection.getContractAddress() == null
+                || currentElection.getExternalNullifier() == null
+                || currentElection.getExternalNullifier().isEmpty())
         {
             showVoteMessage("Election is missing voting metadata.");
             return null;
         }
 
-        if (currentElection.encryptionPublicKey == null || currentElection.encryptionPublicKey.trim().isEmpty())
+        if (currentElection.getEncryptionPublicKey() == null || currentElection.getEncryptionPublicKey().trim().isEmpty())
         {
             showVoteMessage("Election encryption public key is missing.");
             return null;
         }
 
         return new VotePreparationData(
-                currentElection.publicId,
-                currentElection.contractAddress,
-                currentElection.externalNullifier,
-                currentElection.encryptionPublicKey,
-                currentRegistration.identityCommitment,
+                currentElection.getPublicId(),
+                currentElection.getContractAddress(),
+                currentElection.getExternalNullifier(),
+                currentElection.getEncryptionPublicKey(),
+                currentRegistration.getIdentityCommitment(),
                 passphrase,
                 userId,
-                candidate.publicId
+                candidate.getPublicId()
         );
     }
 
@@ -574,7 +574,7 @@ public class ElectionDetailFragment extends Fragment
             }
 
             binding.inputVotePassphrase.setText("");
-            showVoteMessage("Vote submitted. Transaction: " + value(result.receipt.transactionHash));
+            showVoteMessage("Vote submitted. Transaction: " + value(result.receipt.getTransactionHash()));
             loadRegistration();
         });
     }
@@ -610,12 +610,12 @@ public class ElectionDetailFragment extends Fragment
 
     private static boolean isRegistrationPhase(ElectionDto election)
     {
-        return election != null && "REGISTRATION".equalsIgnoreCase(election.phase);
+        return election != null && "REGISTRATION".equalsIgnoreCase(election.getPhase());
     }
 
     private static boolean isVotingPhase(ElectionDto election)
     {
-        return election != null && "VOTING".equalsIgnoreCase(election.phase);
+        return election != null && "VOTING".equalsIgnoreCase(election.getPhase());
     }
 
     private boolean isAdminMode()
@@ -625,8 +625,8 @@ public class ElectionDetailFragment extends Fragment
 
     private static String formatRegistrationStatus(VoterRegistrationDto registration)
     {
-        String participation = registration == null ? null : registration.participationStatus;
-        String commitment = registration == null ? null : registration.commitmentStatus;
+        String participation = registration == null ? null : registration.getParticipationStatus();
+        String commitment = registration == null ? null : registration.getCommitmentStatus();
         String status = nonEmpty(participation, "REGISTERED");
         if (commitment != null && !commitment.trim().isEmpty())
         {

@@ -48,7 +48,7 @@ public class CandidateAdapter extends RecyclerView.Adapter<CandidateAdapter.Cand
         if (selectedId == null) return null;
         for (CandidateDto candidate : candidates)
         {
-            if (selectedId.equals(candidate.publicId)) return candidate;
+            if (selectedId.equals(candidate.getPublicId())) return candidate;
         }
         return null;
     }
@@ -93,9 +93,9 @@ public class CandidateAdapter extends RecyclerView.Adapter<CandidateAdapter.Cand
 
         void bind(CandidateDto candidate)
         {
-            name.setText(candidate.fullName == null ? "Unnamed candidate" : candidate.fullName);
-            party.setText(candidate.partyName == null ? "Independent" : candidate.partyName);
-            radio.setChecked(candidate.publicId != null && candidate.publicId.equals(selectedId));
+            name.setText(candidate.getFullName() == null ? "Unnamed candidate" : candidate.getFullName());
+            party.setText(candidate.getPartyName() == null ? "Independent" : candidate.getPartyName());
+            radio.setChecked(candidate.getPublicId() != null && candidate.getPublicId().equals(selectedId));
 
             row.setOnClickListener(v -> select(candidate));
             radio.setOnClickListener(v -> select(candidate));
@@ -103,9 +103,9 @@ public class CandidateAdapter extends RecyclerView.Adapter<CandidateAdapter.Cand
 
         private void select(CandidateDto candidate)
         {
-            if (candidate.publicId == null) return;
+            if (candidate.getPublicId() == null) return;
             UUID previous = selectedId;
-            selectedId = candidate.publicId;
+            selectedId = candidate.getPublicId();
 
             if (previous != null)
             {
@@ -126,7 +126,7 @@ public class CandidateAdapter extends RecyclerView.Adapter<CandidateAdapter.Cand
         {
             for (int i = 0; i < candidates.size(); i++)
             {
-                if (id.equals(candidates.get(i).publicId)) return i;
+                if (id.equals(candidates.get(i).getPublicId())) return i;
             }
             return -1;
         }

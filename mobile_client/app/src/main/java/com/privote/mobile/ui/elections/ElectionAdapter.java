@@ -77,17 +77,17 @@ public class ElectionAdapter extends RecyclerView.Adapter<ElectionAdapter.ViewHo
 
         void bind(ElectionDto election, OnElectionClickListener listener)
         {
-            tvTitle.setText(nonEmpty(election.title, "Untitled election"));
-            tvDescription.setText(nonEmpty(election.description, "No description"));
-            tvPhase.setText(nonEmpty(election.phase, "UNKNOWN"));
+            tvTitle.setText(nonEmpty(election.getTitle(), "Untitled election"));
+            tvDescription.setText(nonEmpty(election.getDescription(), "No description"));
+            tvPhase.setText(nonEmpty(election.getPhase(), "UNKNOWN"));
             tvDates.setText(formatDates(election));
             itemView.setOnClickListener(v -> listener.onElectionClick(election));
         }
 
         private static String formatDates(ElectionDto election)
         {
-            String start = DateFormatUtils.dateTime(election.startTime);
-            String end = DateFormatUtils.dateTime(election.endTime);
+            String start = DateFormatUtils.dateTime(election.getStartTime());
+            String end = DateFormatUtils.dateTime(election.getEndTime());
             return start + " - " + end;
         }
 
