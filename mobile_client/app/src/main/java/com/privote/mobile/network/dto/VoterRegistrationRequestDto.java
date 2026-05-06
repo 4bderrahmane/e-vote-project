@@ -1,11 +1,11 @@
 package com.privote.mobile.network.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public class VoterRegistrationRequestDto
 {
-    public String identityCommitment;
-
-    public VoterRegistrationRequestDto(String identityCommitment)
-    {
-        this.identityCommitment = identityCommitment;
-    }
+    private final String identityCommitment;
 }

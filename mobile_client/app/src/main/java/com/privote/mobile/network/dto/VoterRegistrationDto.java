@@ -2,14 +2,21 @@ package com.privote.mobile.network.dto;
 
 import java.util.UUID;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
 public class VoterRegistrationDto
 {
-    public UUID electionPublicId;
-    public UUID citizenKeycloakId;
-    public String participationStatus;
-    public String commitmentStatus;
-    public String identityCommitment;
-    public Long merkleLeafIndex;
-    public String transactionHash;
-    public String registeredAt;
+    private UUID electionPublicId;
+    private UUID citizenKeycloakId;
+    private String participationStatus;
+    private String commitmentStatus;
+    private String identityCommitment;
+    private Long merkleLeafIndex;
+    private String transactionHash;
+    private String registeredAt;
 }

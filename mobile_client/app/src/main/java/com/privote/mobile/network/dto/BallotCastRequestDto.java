@@ -2,16 +2,14 @@ package com.privote.mobile.network.dto;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public class BallotCastRequestDto
 {
-    public byte[] ciphertext;
-    public String nullifier;
-    public List<String> proof;
-
-    public BallotCastRequestDto(byte[] ciphertext, String nullifier, List<String> proof)
-    {
-        this.ciphertext = ciphertext;
-        this.nullifier = nullifier;
-        this.proof = proof;
-    }
+    private final byte[] ciphertext;
+    private final String nullifier;
+    private final List<String> proof;
 }
