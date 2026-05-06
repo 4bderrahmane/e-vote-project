@@ -16,7 +16,7 @@ public class ElectionDto
     private String description;
     private String startTime;
     private String endTime;
-    private String phase;           // REGISTRATION | VOTING | TALLY
+    private String phase;
     private String externalNullifier;
     private String contractAddress;
     private String encryptionPublicKey;
