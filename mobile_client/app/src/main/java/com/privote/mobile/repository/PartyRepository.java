@@ -47,7 +47,7 @@ public class PartyRepository
 
     public PartyRepository(Context ctx)
     {
-        apiClient = ApiClient.getInstance(ctx);
+        apiClient = new ApiClient(ctx);
     }
 
     public LiveData<PartyListResult> getParties()

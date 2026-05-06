@@ -44,7 +44,7 @@ public class ProfileRepository
 
     public ProfileRepository(Context ctx)
     {
-        apiClient = ApiClient.getInstance(ctx);
+        apiClient = new ApiClient(ctx);
     }
 
     public LiveData<ProfileResult> getProfile()

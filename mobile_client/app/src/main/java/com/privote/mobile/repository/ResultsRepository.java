@@ -51,7 +51,7 @@ public class ResultsRepository
 
     public ResultsRepository(Context ctx)
     {
-        apiClient = ApiClient.getInstance(ctx);
+        apiClient = new ApiClient(ctx);
     }
 
     public LiveData<ResultsListResult> getResults()
@@ -95,7 +95,7 @@ public class ResultsRepository
 
         for (ElectionDto election : elections)
         {
-            apiClient.api().getResults(election.publicId).enqueue(new Callback<ElectionResultDto>()
+            apiClient.api().getResults(election.getPublicId()).enqueue(new Callback<ElectionResultDto>()
             {
                 @Override
                 public void onResponse(Call<ElectionResultDto> call, Response<ElectionResultDto> response)
@@ -147,6 +147,7 @@ public class ResultsRepository
 
     private static String safeTitle(ElectionDto election)
     {
-        return election.title == null || election.title.trim().isEmpty() ? "Election" : election.title;
+        String title = election.getTitle();
+        return title == null || title.trim().isEmpty() ? "Election" : title;
     }
 }

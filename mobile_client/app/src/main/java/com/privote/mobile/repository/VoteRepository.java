@@ -85,8 +85,8 @@ public class VoteRepository
 
     public VoteRepository(Context ctx)
     {
-        this.apiClient = ApiClient.getInstance(ctx);
-        this.proofServiceClient = ProofServiceClient.getInstance();
+        this.apiClient = new ApiClient(ctx);
+        this.proofServiceClient = new ProofServiceClient();
         this.prover = new SemaphoreProver(ctx);
     }
 
@@ -114,14 +114,14 @@ public class VoteRepository
             return VoteCastResult.failure(AppError.validation("Merkle proof response was empty"));
         }
 
-        if (merkleProof.expectedDepth == null || merkleProof.siblings == null || merkleProof.index == null)
+        if (merkleProof.getExpectedDepth() == null || merkleProof.getSiblings() == null || merkleProof.getIndex() == null)
         {
             return VoteCastResult.failure(AppError.validation("Merkle proof response is missing required fields"));
         }
 
         if (request.identityCommitmentDecimal != null
-                && merkleProof.leaf != null
-                && !request.identityCommitmentDecimal.equals(merkleProof.leaf))
+                && merkleProof.getLeaf() != null
+                && !request.identityCommitmentDecimal.equals(merkleProof.getLeaf()))
         {
             return VoteCastResult.failure(AppError.validation(
                     "Merkle proof leaf does not match registered identity commitment"
@@ -131,11 +131,11 @@ public class VoteRepository
         SemaphoreProofResult proof;
         try
         {
-            List<String> siblings = padSiblingsForSemaphore20(merkleProof.siblings);
+            List<String> siblings = padSiblingsForSemaphore20(merkleProof.getSiblings());
             proof = prover.proveVote(
                     request.identitySecretDecimal,
-                    Integer.toString(merkleProof.expectedDepth),
-                    Long.toString(merkleProof.index),
+                    Integer.toString(merkleProof.getExpectedDepth()),
+                    Long.toString(merkleProof.getIndex()),
                     siblings,
                     request.ciphertext,
                     request.externalNullifierDecimal

@@ -45,7 +45,7 @@ public class ElectionRepository
 
     public ElectionRepository(Context ctx)
     {
-        apiClient = ApiClient.getInstance(ctx);
+        apiClient = new ApiClient(ctx);
     }
 
     public LiveData<ElectionListResult> getElections()

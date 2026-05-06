@@ -1,9 +1,6 @@
 package com.privote.mobile.network;
 
-import android.content.Context;
-
 import com.privote.mobile.auth.AuthConfig;
-import com.privote.mobile.auth.TokenInterceptor;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -12,19 +9,18 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.util.concurrent.TimeUnit;
 
-public final class ApiClient
+public final class ProofServiceClient
 {
     private static final long NETWORK_TIMEOUT_SECONDS = 180L;
 
-    private final ApiService apiService;
+    private final ProofServiceApi api;
 
-    public ApiClient(Context ctx)
+    public ProofServiceClient()
     {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 
         OkHttpClient httpClient = new OkHttpClient.Builder()
-                .addInterceptor(new TokenInterceptor(ctx.getApplicationContext()))
                 .addInterceptor(logging)
                 .connectTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .readTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -33,16 +29,16 @@ public final class ApiClient
                 .build();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(AuthConfig.API_BASE_URL)
+                .baseUrl(AuthConfig.PROOF_SERVICE_BASE_URL)
                 .client(httpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        apiService = retrofit.create(ApiService.class);
+        api = retrofit.create(ProofServiceApi.class);
     }
 
-    public ApiService api()
+    public ProofServiceApi api()
     {
-        return apiService;
+        return api;
     }
 }

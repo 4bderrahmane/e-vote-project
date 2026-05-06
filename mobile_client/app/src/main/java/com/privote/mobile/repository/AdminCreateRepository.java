@@ -47,7 +47,7 @@ public class AdminCreateRepository
 
     public AdminCreateRepository(Context ctx)
     {
-        apiClient = ApiClient.getInstance(ctx);
+        apiClient = new ApiClient(ctx);
     }
 
     public LiveData<CreateResult> createElection(ElectionCreateRequestDto request)
@@ -60,7 +60,7 @@ public class AdminCreateRepository
             {
                 if (response.isSuccessful() && response.body() != null)
                 {
-                    result.postValue(CreateResult.success("Created election: " + response.body().title));
+                    result.postValue(CreateResult.success("Created election: " + response.body().getTitle()));
                     return;
                 }
                 result.postValue(CreateResult.error("Create election failed: HTTP " + response.code()));
@@ -85,7 +85,7 @@ public class AdminCreateRepository
             {
                 if (response.isSuccessful() && response.body() != null)
                 {
-                    result.postValue(CreateResult.success("Created party: " + response.body().name));
+                    result.postValue(CreateResult.success("Created party: " + response.body().getName()));
                     return;
                 }
                 result.postValue(CreateResult.error("Create party failed: HTTP " + response.code()));

@@ -51,7 +51,7 @@ public class VoterRegistrationRepository
 
     public VoterRegistrationRepository(Context ctx)
     {
-        apiClient = ApiClient.getInstance(ctx);
+        apiClient = new ApiClient(ctx);
     }
 
     public LiveData<RegistrationResult> getMyRegistration(UUID electionUuid)

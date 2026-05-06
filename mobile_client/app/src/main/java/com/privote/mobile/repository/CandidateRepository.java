@@ -45,7 +45,7 @@ public class CandidateRepository
 
     public CandidateRepository(Context ctx)
     {
-        apiClient = ApiClient.getInstance(ctx);
+        apiClient = new ApiClient(ctx);
     }
 
     public LiveData<CandidatesResult> getActiveCandidates(UUID electionUuid)

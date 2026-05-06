@@ -56,7 +56,7 @@ public class MyVotesRepository
 
     public MyVotesRepository(Context ctx)
     {
-        apiClient = ApiClient.getInstance(ctx);
+        apiClient = new ApiClient(ctx);
     }
 
     public LiveData<MyVotesResult> getMyVotes()
@@ -100,7 +100,7 @@ public class MyVotesRepository
 
         for (ElectionDto election : elections)
         {
-            apiClient.api().getMyRegistration(election.publicId).enqueue(new Callback<VoterRegistrationDto>()
+            apiClient.api().getMyRegistration(election.getPublicId()).enqueue(new Callback<VoterRegistrationDto>()
             {
                 @Override
                 public void onResponse(Call<VoterRegistrationDto> call, Response<VoterRegistrationDto> response)
@@ -152,6 +152,7 @@ public class MyVotesRepository
 
     private static String safeTitle(ElectionDto election)
     {
-        return election.title == null || election.title.trim().isEmpty() ? "Election" : election.title;
+        String title = election.getTitle();
+        return title == null || title.trim().isEmpty() ? "Election" : title;
     }
 }
