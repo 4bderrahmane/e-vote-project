@@ -1,9 +1,38 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Base.Theme.Privote_mobile_client" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/welcome_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/welcome_brand_light</item>
+        <item name="colorOnPrimaryContainer">@color/welcome_brand</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="android:colorBackground">@color/welcome_bg</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
     </style>
 
     <style name="Theme.Privote_mobile_client" parent="Base.Theme.Privote_mobile_client" />
+
+    <style name="Widget.Privote.BottomNavigation.ActiveIndicator" parent="">
+        <item name="android:color">@android:color/transparent</item>
+    </style>
+
+    <style name="PrivoteEditText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/edit_text_bg</item>
+        <item name="android:textColor">@color/welcome_text</item>
+        <item name="android:textColorHint">@color/welcome_muted</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="Privote.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/welcome_line</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="android:textColorHint">@color/welcome_muted</item>
+        <item name="hintTextColor">@color/welcome_primary</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+    </style>
 </resources>

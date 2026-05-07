@@ -1,5 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
+    <color name="teal_200">#FF03DAC5</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- App backgrounds -->
+    <color name="welcome_bg">#F1F5F9</color>
+    <color name="welcome_surface">#FFFFFF</color>
+
+    <!-- Text hierarchy -->
+    <color name="welcome_text">#0F172A</color>
+    <color name="welcome_muted">#64748B</color>
+    <color name="welcome_line">#CBD5E1</color>
+
+    <!-- Primary blue palette -->
+    <color name="welcome_primary">#2563EB</color>
+    <color name="welcome_primary_dark">#1D4ED8</color>
+    <color name="welcome_brand">#1E40AF</color>
+    <color name="welcome_brand_light">#DBEAFE</color>
+    <color name="surface_subtle">#F8FAFC</color>
+
+    <!-- Election phase colors -->
+    <color name="phase_reg_bg">#DBEAFE</color>
+    <color name="phase_reg_text">#1E40AF</color>
+    <color name="phase_vote_bg">#DCFCE7</color>
+    <color name="phase_vote_text">#15803D</color>
+    <color name="phase_tally_bg">#FEF3C7</color>
+    <color name="phase_tally_text">#92400E</color>
+
+    <!-- Semantic status colors -->
+    <color name="success_bg">#DCFCE7</color>
+    <color name="success_text">#15803D</color>
+    <color name="warning_bg">#FEF9C3</color>
+    <color name="warning_text">#854D0E</color>
+    <color name="danger_bg">#FEE2E2</color>
+    <color name="danger_text">#B91C1C</color>
 </resources>

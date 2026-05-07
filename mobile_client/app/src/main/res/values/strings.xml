@@ -1,3 +1,45 @@
 <resources>
-    <string name="app_name">privote_mobile_client</string>
+    <string name="app_name">Privote</string>
+    <string name="welcome_title">Welcome to the</string>
+    <string name="welcome_highlight">Voice of the People</string>
+    <string name="welcome_description">Participate in polls and make your voice heard - create an account or log in to get started.</string>
+    <string name="welcome_create_account">Create account</string>
+    <string name="welcome_login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="elections_title">Elections</string>
+    <string name="results">Results</string>
+    <string name="my_votes">Votes</string>
+    <string name="profile">Profile</string>
+    <string name="dashboard_placeholder">Track voting activity and available actions from here.</string>
+    <string name="results_placeholder">Election results will appear here once they are published.</string>
+    <string name="my_votes_placeholder">Your vote receipts and voting history will appear here.</string>
+    <string name="profile_placeholder">Account profile and settings will appear here.</string>
+    <string name="edit_profile">Edit profile</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
+    <string name="parties">Parties</string>
+    <string name="create_election">Create</string>
+    <string name="admin_mode">Admin</string>
+    <string name="citizen_mode">Citizen</string>
+    <string name="start_voting_button">Start voting</string>
+
+    <string name="register_section_title">Voter registration</string>
+    <string name="register_status_not_registered">Not registered</string>
+    <string name="register_status_registered">Registered</string>
+    <string name="register_passphrase_hint">Voting passphrase</string>
+    <string name="register_button">Register to vote</string>
+    <string name="register_button_busy">Deriving identity…</string>
+    <string name="register_intro">Pick a strong passphrase. The app derives your Semaphore identity from it on this device. Use the same passphrase later to cast your ballot — there is no recovery if you forget it.</string>
+
+    <string name="vote_section_title">Cast your vote</string>
+    <string name="vote_intro">Pick a candidate and re-enter the passphrase you used to register. The app derives your identity, fetches a Merkle proof, and generates a Semaphore proof on-device.</string>
+    <string name="vote_passphrase_hint">Voting passphrase</string>
+    <string name="vote_candidates_label">Candidates</string>
+    <string name="vote_button">Cast vote</string>
+    <string name="vote_button_busy">Casting ballot…</string>
+    <string name="vote_waiting_for_start">Your registration is complete. Voting will be available when the election is started.</string>
+    <string name="vote_unencrypted_warning">Your ballot is encrypted on this device before proof generation and submission.</string>
+    <string name="vote_already_cast">You have already cast a ballot for this election.</string>
 </resources>
