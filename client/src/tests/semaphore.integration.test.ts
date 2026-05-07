@@ -29,7 +29,7 @@ describe("semaphore integration", () => {
         const externalNullifier = 42n;
         const ciphertext = new Uint8Array([1, 2, 3, 4]);
         const electionKey = electionKeyFromExternalNullifier(externalNullifier);
-        const vault = await createIdentityVault(password);
+        const vault = await createIdentityVault(password, {memoryKiB: 8 * 1024});
         const identity = await deriveElectionIdentityFromVault(
             password,
             vault,

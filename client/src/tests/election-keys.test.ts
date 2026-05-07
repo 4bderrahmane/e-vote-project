@@ -79,7 +79,7 @@ describe("shared/crypto/electionKeys", function (this: Mocha.Suite) {
                     ...context,
                     electionId: "5f0e4f23-b5b0-49bd-8c02-216ece8ac5d6",
                 }),
-            /context mismatch/i
+            /failed to decrypt election payload/i
         );
     });
 
