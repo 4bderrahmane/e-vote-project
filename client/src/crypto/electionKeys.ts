@@ -1,11 +1,26 @@
-import { argon2id } from "@noble/hashes/argon2";
+import {runArgon2id} from "./argon2Runner";
+import type {
+    ElectionKeyVault,
+    ElectionPayloadContext,
+    ElectionVaultKdf,
+    StoredElectionKeyVault,
+    VaultCustodyOptions,
+    VaultSecretMode,
+} from "./electionVault.types";
+
+export type {
+    ElectionKeyVault,
+    ElectionPayloadContext,
+    ElectionVaultKdf,
+    StoredElectionKeyVault,
+    VaultCustodyOptions,
+    VaultSecretMode,
+} from "./electionVault.types";
 
 const textEncoder = new TextEncoder();
 
-const LEGACY_VAULT_VERSION = 1 as const;
 const CURRENT_VAULT_VERSION = 2 as const;
 const CURRENT_VAULT_CIPHER = "AES-GCM-256" as const;
-const LEGACY_VAULT_KDF = "PBKDF2-SHA256" as const;
 const CURRENT_VAULT_KDF = "ARGON2ID" as const;
 const CURRENT_VAULT_ALGORITHM = "X25519-PKCS8" as const;
 const CURRENT_ARGON2_ITERATIONS = 3;
@@ -13,27 +28,24 @@ const CURRENT_ARGON2_MEMORY_KIB = 64 * 1024;
 const CURRENT_ARGON2_PARALLELISM = 1;
 
 export const ELECTION_VAULT_MIN_PASSWORD_LENGTH = 16;
-const MIN_ALLOWED_PBKDF2_ITERATIONS = 250_000;
-const MAX_ALLOWED_PBKDF2_ITERATIONS = 2_000_000;
-const MIN_ALLOWED_ARGON2_ITERATIONS = 1;
-const MAX_ALLOWED_ARGON2_ITERATIONS = 10;
+const MIN_ALLOWED_ARGON2_ITERATIONS = 2;
+const MAX_ALLOWED_ARGON2_ITERATIONS = 19;
 const MIN_ALLOWED_ARGON2_MEMORY_KIB = 8 * 1024;
 const MAX_ALLOWED_ARGON2_MEMORY_KIB = 1024 * 1024;
 const MIN_ALLOWED_ARGON2_PARALLELISM = 1;
 const MAX_ALLOWED_ARGON2_PARALLELISM = 8;
 
-const PBKDF2_SALT_BYTES = 16;
+const KDF_SALT_BYTES = 16;
 const AES_GCM_IV_BYTES = 12;
 const X25519_PUBLIC_KEY_BYTES = 32;
 const SHARED_SECRET_BYTES = 32;
 const MIN_PRIVATE_KEY_CIPHERTEXT_BYTES = 32;
 const AES_GCM_TAG_BYTES = 16;
 
-const PAYLOAD_VERSION_LEGACY = 1;
 const PAYLOAD_VERSION_CONTEXT_BOUND = 2;
 const PAYLOAD_SALT_BYTES = 16;
 const PAYLOAD_CONTEXT_HASH_BYTES = 32;
-const PAYLOAD_INFO_V1 = textEncoder.encode("privote-election-payload-v1");
+const PUBLIC_KEY_FINGERPRINT_BYTES = 16;
 const PAYLOAD_INFO_V2_PREFIX = textEncoder.encode("privote-election-payload-v2");
 const DEFAULT_PAYLOAD_PROTOCOL_DOMAIN = "privote:election-ballot";
 const PAYLOAD_CONTEXT_DOMAIN_MAX_LENGTH = 96;
@@ -45,63 +57,13 @@ const PAYLOAD_CONTEXT_LABEL = "privote-election-payload-context-v2";
 
 const BASE64_CANONICAL_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
-const PAYLOAD_HEADER_V1_BYTES = 1 + X25519_PUBLIC_KEY_BYTES + PAYLOAD_SALT_BYTES + AES_GCM_IV_BYTES;
-const PAYLOAD_HEADER_V2_BYTES = PAYLOAD_HEADER_V1_BYTES + PAYLOAD_CONTEXT_HASH_BYTES;
-
-export type VaultSecretMode = "PASSWORD_ONLY" | "PASSWORD_PLUS_CUSTODY_SECRET";
-
-export type VaultCustodyOptions = {
-    // Use Uint8Array when possible so custody secret bytes can be wiped.
-    // String values are immutable in JS and cannot be zeroized.
-    custodySecret?: string | Uint8Array;
-};
-
-export type ElectionPayloadContext = {
-    electionId: string;
-    publicKeyFingerprint: string;
-    protocolDomain?: string;
-};
+const PAYLOAD_HEADER_V2_BYTES =
+    1 + X25519_PUBLIC_KEY_BYTES + PAYLOAD_SALT_BYTES + AES_GCM_IV_BYTES + PAYLOAD_CONTEXT_HASH_BYTES;
 
 type NormalizedElectionPayloadContext = {
     electionId: string;
     publicKeyFingerprint: string;
     protocolDomain: string;
-};
-
-type ElectionVaultKdf =
-    | {
-        name: "PBKDF2-SHA256";
-        iterations: number;
-        saltB64: string;
-        secretMode?: VaultSecretMode;
-    }
-    | {
-        name: "ARGON2ID";
-        iterations: number;
-        memoryKiB: number;
-        parallelism: number;
-        saltB64: string;
-        secretMode?: VaultSecretMode;
-    };
-
-export type ElectionKeyVault = {
-    version: typeof LEGACY_VAULT_VERSION | typeof CURRENT_VAULT_VERSION;
-    privateKeyAlgorithm: "X25519-PKCS8";
-    publicKeyRawB64: string;
-    wrapping: {
-        cipher: "AES-GCM-256";
-        kdf: ElectionVaultKdf;
-        ivB64: string;
-        ciphertextB64: string;
-    };
-};
-
-export type StoredElectionKeyVault = {
-    electionPublicId: string;
-    electionTitle?: string;
-    createdAt: string;
-    publicKeyHex: string;
-    vault: ElectionKeyVault;
 };
 
 function assertWebCrypto(): Crypto {
@@ -117,18 +79,6 @@ function assertPassword(password: unknown): void {
         throw new Error(
             `Password must be at least ${ELECTION_VAULT_MIN_PASSWORD_LENGTH} characters long. ` +
             "Use a long unique passphrase for election key custody."
-        );
-    }
-}
-
-function assertPbkdf2Iterations(iterations: number): void {
-    if (!Number.isInteger(iterations)) {
-        throw new TypeError("PBKDF2 iterations must be an integer.");
-    }
-    if (iterations < MIN_ALLOWED_PBKDF2_ITERATIONS || iterations > MAX_ALLOWED_PBKDF2_ITERATIONS) {
-        throw new Error(
-            `PBKDF2 iterations are out of allowed range: ${iterations}. ` +
-            `Allowed range: ${MIN_ALLOWED_PBKDF2_ITERATIONS}..${MAX_ALLOWED_PBKDF2_ITERATIONS}.`
         );
     }
 }
@@ -170,17 +120,12 @@ function assertArgon2Parallelism(parallelism: number): void {
 }
 
 function assertVaultKdf(kdf: ElectionVaultKdf): void {
-    if (kdf.name === LEGACY_VAULT_KDF) {
-        assertPbkdf2Iterations(kdf.iterations);
-        return;
+    if (kdf.name !== CURRENT_VAULT_KDF) {
+        throw new Error(`Unsupported vault KDF: ${(kdf as { name?: unknown }).name}`);
     }
-    if (kdf.name === CURRENT_VAULT_KDF) {
-        assertArgon2Iterations(kdf.iterations);
-        assertArgon2MemoryKiB(kdf.memoryKiB);
-        assertArgon2Parallelism(kdf.parallelism);
-        return;
-    }
-    throw new Error(`Unsupported vault KDF: ${(kdf as { name?: unknown }).name}`);
+    assertArgon2Iterations(kdf.iterations);
+    assertArgon2MemoryKiB(kdf.memoryKiB);
+    assertArgon2Parallelism(kdf.parallelism);
 }
 
 function asBufferSource(bytes: Uint8Array): BufferSource {
@@ -278,10 +223,6 @@ function buildStructuredAad(label: string, fields: Array<readonly [string, strin
 }
 
 function resolveVaultSecretMode(vault: ElectionKeyVault): VaultSecretMode {
-    if (vault.version === LEGACY_VAULT_VERSION) {
-        return "PASSWORD_ONLY";
-    }
-
     const mode = vault.wrapping.kdf.secretMode;
     if (mode !== "PASSWORD_ONLY" && mode !== "PASSWORD_PLUS_CUSTODY_SECRET") {
         throw new Error("Unsupported or missing vault secret mode.");
@@ -290,39 +231,19 @@ function resolveVaultSecretMode(vault: ElectionKeyVault): VaultSecretMode {
 }
 
 function buildVaultAad(vault: ElectionKeyVault): Uint8Array {
-    if (vault.version === LEGACY_VAULT_VERSION) {
-        return textEncoder.encode(JSON.stringify({
-            version: vault.version,
-            privateKeyAlgorithm: vault.privateKeyAlgorithm,
-            publicKeyRawB64: vault.publicKeyRawB64,
-            wrapping: {
-                cipher: vault.wrapping.cipher,
-                kdf: {
-                    name: vault.wrapping.kdf.name,
-                    iterations: vault.wrapping.kdf.iterations,
-                    saltB64: vault.wrapping.kdf.saltB64,
-                },
-            },
-        }));
-    }
-
     const secretMode = resolveVaultSecretMode(vault);
-    const aadFields: Array<readonly [string, string]> = [
+    return buildStructuredAad(VAULT_AAD_V2_LABEL, [
         ["version", String(vault.version)],
         ["privateKeyAlgorithm", vault.privateKeyAlgorithm],
         ["publicKeyRawB64", vault.publicKeyRawB64],
         ["cipher", vault.wrapping.cipher],
         ["kdfName", vault.wrapping.kdf.name],
         ["kdfIterations", String(vault.wrapping.kdf.iterations)],
+        ["kdfMemoryKiB", String(vault.wrapping.kdf.memoryKiB)],
+        ["kdfParallelism", String(vault.wrapping.kdf.parallelism)],
         ["kdfSaltB64", vault.wrapping.kdf.saltB64],
         ["secretMode", secretMode],
-    ];
-
-    if (vault.wrapping.kdf.name === CURRENT_VAULT_KDF) {
-        aadFields.push(["kdfMemoryKiB", String(vault.wrapping.kdf.memoryKiB)], ["kdfParallelism", String(vault.wrapping.kdf.parallelism)]);
-    }
-
-    return buildStructuredAad(VAULT_AAD_V2_LABEL, aadFields);
+    ]);
 }
 
 function normalizeCustodySecret(secret: unknown): Uint8Array {
@@ -356,42 +277,18 @@ async function deriveWrappingKey(
     const cryptoApi = assertWebCrypto();
     assertVaultKdf(kdf);
 
-    // We can wipe this temporary UTF-8 buffer, not the original JS string.
     const passwordBytes = textEncoder.encode(password);
     let baseKeyBytes: Uint8Array | undefined;
     let mixedKeyBytes: Uint8Array | undefined;
     let custodySecretBytes: Uint8Array | undefined;
 
     try {
-        if (kdf.name === LEGACY_VAULT_KDF) {
-            const keyMaterial = await cryptoApi.subtle.importKey(
-                "raw",
-                passwordBytes,
-                "PBKDF2",
-                false,
-                ["deriveBits"]
-            );
-            baseKeyBytes = new Uint8Array(
-                await cryptoApi.subtle.deriveBits(
-                    {
-                        name: "PBKDF2",
-                        hash: "SHA-256",
-                        salt: asBufferSource(salt),
-                        iterations: kdf.iterations,
-                    },
-                    keyMaterial,
-                    256
-                )
-            );
-        } else {
-            // Argon2id runs in JS here; behavior and assurances differ from native Argon2 implementations.
-            baseKeyBytes = argon2id(passwordBytes, salt, {
-                t: kdf.iterations,
-                m: kdf.memoryKiB,
-                p: kdf.parallelism,
-                dkLen: 32,
-            });
-        }
+        baseKeyBytes = await runArgon2id(passwordBytes, salt, {
+            t: kdf.iterations,
+            m: kdf.memoryKiB,
+            p: kdf.parallelism,
+            dkLen: 32,
+        });
 
         if (secretMode === "PASSWORD_PLUS_CUSTODY_SECRET") {
             custodySecretBytes = normalizeCustodySecret(options.custodySecret);
@@ -427,7 +324,7 @@ async function deriveWrappingKey(
 }
 
 function validateVault(vault: ElectionKeyVault): void {
-    if (vault.version !== LEGACY_VAULT_VERSION && vault.version !== CURRENT_VAULT_VERSION) {
+    if (vault.version !== CURRENT_VAULT_VERSION) {
         throw new Error(`Unsupported election key vault version: ${vault.version}`);
     }
     if (vault.privateKeyAlgorithm !== CURRENT_VAULT_ALGORITHM) {
@@ -436,14 +333,9 @@ function validateVault(vault: ElectionKeyVault): void {
     if (vault.wrapping.cipher !== CURRENT_VAULT_CIPHER) {
         throw new Error(`Unsupported vault cipher: ${vault.wrapping.cipher}`);
     }
-    if (vault.version === LEGACY_VAULT_VERSION && vault.wrapping.kdf.name !== LEGACY_VAULT_KDF) {
-        throw new Error("Vault version 1 only supports PBKDF2-SHA256.");
-    }
 
     assertVaultKdf(vault.wrapping.kdf);
-    if (vault.version === CURRENT_VAULT_VERSION) {
-        resolveVaultSecretMode(vault);
-    }
+    resolveVaultSecretMode(vault);
 
     const publicKey = base64DecodeStrict(vault.publicKeyRawB64, "publicKeyRawB64");
     if (publicKey.length !== X25519_PUBLIC_KEY_BYTES) {
@@ -454,7 +346,7 @@ function validateVault(vault: ElectionKeyVault): void {
     const iv = base64DecodeStrict(vault.wrapping.ivB64, "ivB64");
     const ciphertext = base64DecodeStrict(vault.wrapping.ciphertextB64, "ciphertextB64");
 
-    if (salt.length !== PBKDF2_SALT_BYTES) {
+    if (salt.length !== KDF_SALT_BYTES) {
         throw new Error(`Invalid salt length: ${salt.length}`);
     }
     if (iv.length !== AES_GCM_IV_BYTES) {
@@ -482,7 +374,7 @@ export async function derivePublicKeyFingerprint(publicKeyHex: string): Promise<
         const digest = new Uint8Array(
             await cryptoApi.subtle.digest("SHA-256", asBufferSource(publicKey))
         );
-        return bytesToHex(digest.slice(0, 8));
+        return bytesToHex(digest.slice(0, PUBLIC_KEY_FINGERPRINT_BYTES));
     } finally {
         wipeBytes(publicKey);
     }
@@ -594,7 +486,7 @@ async function hashPayloadContext(context: NormalizedElectionPayloadContext): Pr
     return new Uint8Array(await cryptoApi.subtle.digest("SHA-256", asBufferSource(aad)));
 }
 
-function buildPayloadInfoV2(contextHash: Uint8Array): Uint8Array {
+function buildPayloadInfo(contextHash: Uint8Array): Uint8Array {
     return concatBytes(PAYLOAD_INFO_V2_PREFIX, contextHash);
 }
 
@@ -672,7 +564,7 @@ export async function createElectionKeyVault(
     ));
 
     const publicKeyRaw = new Uint8Array(await cryptoApi.subtle.exportKey("raw", keyPair.publicKey));
-    const salt = cryptoApi.getRandomValues(new Uint8Array(PBKDF2_SALT_BYTES));
+    const salt = cryptoApi.getRandomValues(new Uint8Array(KDF_SALT_BYTES));
     const iv = cryptoApi.getRandomValues(new Uint8Array(AES_GCM_IV_BYTES));
     const secretMode: VaultSecretMode = options.custodySecret ? "PASSWORD_PLUS_CUSTODY_SECRET" : "PASSWORD_ONLY";
 
@@ -724,7 +616,7 @@ export async function createElectionKeyVault(
 
         return {
             publicKeyHex: bytesToHex(publicKeyRaw),
-            publicKeyFingerprint: bytesToHex(fingerprintBytes.slice(0, 8)),
+            publicKeyFingerprint: bytesToHex(fingerprintBytes.slice(0, PUBLIC_KEY_FINGERPRINT_BYTES)),
             vault: vaultBase,
         };
     } finally {
@@ -735,7 +627,7 @@ export async function createElectionKeyVault(
 }
 
 /**
- * Legacy helper that returns raw PKCS#8 bytes.
+ * Returns raw PKCS#8 bytes.
  * Prefer unlockElectionPrivateKeyAsCryptoKey() to keep key material inside Web Crypto.
  */
 export async function unlockElectionPrivateKey(
@@ -745,8 +637,7 @@ export async function unlockElectionPrivateKey(
 ): Promise<Uint8Array> {
     const cryptoApi = assertWebCrypto();
     const privateKey = await unwrapElectionPrivateKeyCryptoKey(password, vault, true, options);
-    const privateKeyPkcs8 = new Uint8Array(await cryptoApi.subtle.exportKey("pkcs8", privateKey));
-    return privateKeyPkcs8;
+    return new Uint8Array(await cryptoApi.subtle.exportKey("pkcs8", privateKey));
 }
 
 export async function unlockElectionPrivateKeyAsCryptoKey(
@@ -812,20 +703,7 @@ async function derivePayloadKey(sharedSecret: Uint8Array, salt: Uint8Array, info
     );
 }
 
-function buildPayloadHeaderV1(ephemeralPublicKey: Uint8Array, salt: Uint8Array, iv: Uint8Array): Uint8Array {
-    const header = new Uint8Array(PAYLOAD_HEADER_V1_BYTES);
-    let offset = 0;
-    header[offset] = PAYLOAD_VERSION_LEGACY;
-    offset += 1;
-    header.set(ephemeralPublicKey, offset);
-    offset += X25519_PUBLIC_KEY_BYTES;
-    header.set(salt, offset);
-    offset += PAYLOAD_SALT_BYTES;
-    header.set(iv, offset);
-    return header;
-}
-
-function buildPayloadHeaderV2(
+function buildPayloadHeader(
     ephemeralPublicKey: Uint8Array,
     salt: Uint8Array,
     iv: Uint8Array,
@@ -845,31 +723,22 @@ function buildPayloadHeaderV2(
     return header;
 }
 
-type PayloadEncryptionMode =
-    | { kind: "legacy" }
-    | { kind: "context-bound"; context: NormalizedElectionPayloadContext };
-
 type ParsedPayloadEnvelope = {
-    version: number;
     header: Uint8Array;
     ephemeralPublicKeyRaw: Uint8Array;
     salt: Uint8Array;
     iv: Uint8Array;
+    contextHash: Uint8Array;
     body: Uint8Array;
 };
 
-type DecryptionContextResolution = {
-    payloadInfo: Uint8Array;
-    contextHash?: Uint8Array;
-    expectedContextHash?: Uint8Array;
-};
-
-async function encryptElectionPayloadInternal(
+export async function encryptElectionPayload(
     plaintext: Uint8Array | string,
     electionPublicKeyHex: string,
-    mode: PayloadEncryptionMode
+    context: ElectionPayloadContext
 ): Promise<Uint8Array> {
     const cryptoApi = assertWebCrypto();
+    const normalizedContext = normalizePayloadContext(context);
     const plaintextBytes = typeof plaintext === "string" ? textEncoder.encode(plaintext) : plaintext;
     const recipientPublicKey = await importPublicKey(electionPublicKeyHex);
     const ephemeralKeyPair = assertCryptoKeyPair(
@@ -881,7 +750,7 @@ async function encryptElectionPayloadInternal(
 
     let sharedSecret: Uint8Array | undefined;
     let contextHash: Uint8Array | undefined;
-    let payloadInfo: Uint8Array = PAYLOAD_INFO_V1;
+    let payloadInfo: Uint8Array | undefined;
 
     try {
         sharedSecret = new Uint8Array(
@@ -893,14 +762,9 @@ async function encryptElectionPayloadInternal(
         );
         assertSharedSecretIsNonZero(sharedSecret);
 
-        let header: Uint8Array;
-        if (mode.kind === "context-bound") {
-            contextHash = await hashPayloadContext(mode.context);
-            payloadInfo = buildPayloadInfoV2(contextHash);
-            header = buildPayloadHeaderV2(ephemeralPublicKey, salt, iv, contextHash);
-        } else {
-            header = buildPayloadHeaderV1(ephemeralPublicKey, salt, iv);
-        }
+        contextHash = await hashPayloadContext(normalizedContext);
+        payloadInfo = buildPayloadInfo(contextHash);
+        const header = buildPayloadHeader(ephemeralPublicKey, salt, iv, contextHash);
 
         const payloadKey = await derivePayloadKey(sharedSecret, salt, payloadInfo);
         const ciphertext = await cryptoApi.subtle.encrypt(
@@ -924,109 +788,45 @@ async function encryptElectionPayloadInternal(
         wipeBytes(salt);
         wipeBytes(iv);
         wipeBytes(contextHash);
-        if (payloadInfo !== PAYLOAD_INFO_V1) {
-            wipeBytes(payloadInfo);
-        }
+        wipeBytes(payloadInfo);
     }
 }
 
-export async function encryptElectionPayload(
-    plaintext: Uint8Array | string,
-    electionPublicKeyHex: string,
-    context: ElectionPayloadContext
-): Promise<Uint8Array> {
-    const normalizedContext = normalizePayloadContext(context);
-    return encryptElectionPayloadInternal(plaintext, electionPublicKeyHex, {
-        kind: "context-bound",
-        context: normalizedContext,
-    });
-}
-
-/**
- * Legacy payload format (v1) kept for backward compatibility.
- * New code should use encryptElectionPayload().
- */
-export async function encryptElectionPayloadLegacy(
-    plaintext: Uint8Array | string,
-    electionPublicKeyHex: string
-): Promise<Uint8Array> {
-    return encryptElectionPayloadInternal(plaintext, electionPublicKeyHex, { kind: "legacy" });
-}
-
-function parsePayloadEnvelope(ciphertext: Uint8Array, allowLegacyPayload: boolean): ParsedPayloadEnvelope {
-    if (ciphertext.length <= PAYLOAD_HEADER_V1_BYTES + AES_GCM_TAG_BYTES) {
+function parsePayloadEnvelope(ciphertext: Uint8Array): ParsedPayloadEnvelope {
+    if (ciphertext.length <= PAYLOAD_HEADER_V2_BYTES + AES_GCM_TAG_BYTES) {
         throw new Error("Ciphertext is too short.");
     }
 
     const version = ciphertext[0];
-    const isLegacy = version === PAYLOAD_VERSION_LEGACY;
-    const isContextBound = version === PAYLOAD_VERSION_CONTEXT_BOUND;
-    if (!isLegacy && !isContextBound) {
+    if (version !== PAYLOAD_VERSION_CONTEXT_BOUND) {
         throw new Error(`Unsupported encrypted payload version: ${version}`);
     }
-    if (isLegacy && !allowLegacyPayload) {
-        throw new Error(
-            "Legacy payload v1 is disabled in strict mode. " +
-            "Use decryptElectionPayloadLegacy() for compatibility."
-        );
-    }
 
-    const headerLength = isContextBound ? PAYLOAD_HEADER_V2_BYTES : PAYLOAD_HEADER_V1_BYTES;
-    if (ciphertext.length <= headerLength + AES_GCM_TAG_BYTES) {
-        throw new Error("Ciphertext is too short.");
-    }
+    let offset = 1;
+    const ephemeralPublicKeyRaw = ciphertext.slice(offset, offset + X25519_PUBLIC_KEY_BYTES);
+    offset += X25519_PUBLIC_KEY_BYTES;
+    const salt = ciphertext.slice(offset, offset + PAYLOAD_SALT_BYTES);
+    offset += PAYLOAD_SALT_BYTES;
+    const iv = ciphertext.slice(offset, offset + AES_GCM_IV_BYTES);
+    offset += AES_GCM_IV_BYTES;
+    const contextHash = ciphertext.slice(offset, offset + PAYLOAD_CONTEXT_HASH_BYTES);
 
     return {
-        version,
-        header: ciphertext.slice(0, headerLength),
-        ephemeralPublicKeyRaw: ciphertext.slice(1, 1 + X25519_PUBLIC_KEY_BYTES),
-        salt: ciphertext.slice(1 + X25519_PUBLIC_KEY_BYTES, 1 + X25519_PUBLIC_KEY_BYTES + PAYLOAD_SALT_BYTES),
-        iv: ciphertext.slice(1 + X25519_PUBLIC_KEY_BYTES + PAYLOAD_SALT_BYTES, PAYLOAD_HEADER_V1_BYTES),
-        body: ciphertext.slice(headerLength),
-    };
-}
-
-async function resolveDecryptionContext(
-    version: number,
-    ciphertext: Uint8Array,
-    context: ElectionPayloadContext | undefined
-): Promise<DecryptionContextResolution> {
-    if (version !== PAYLOAD_VERSION_CONTEXT_BOUND) {
-        return { payloadInfo: PAYLOAD_INFO_V1 };
-    }
-
-    if (!context) {
-        throw new Error("Context is required to decrypt version 2 payloads.");
-    }
-
-    const contextHash = ciphertext.slice(PAYLOAD_HEADER_V1_BYTES, PAYLOAD_HEADER_V2_BYTES);
-    if (contextHash.length !== PAYLOAD_CONTEXT_HASH_BYTES) {
-        throw new Error("Invalid payload context hash length.");
-    }
-
-    const expectedContextHash = await hashPayloadContext(normalizePayloadContext(context));
-    if (!constantTimeEqual(contextHash, expectedContextHash)) {
-        throw new Error("Encrypted payload context mismatch.");
-    }
-
-    return {
-        payloadInfo: buildPayloadInfoV2(contextHash),
+        header: ciphertext.slice(0, PAYLOAD_HEADER_V2_BYTES),
+        ephemeralPublicKeyRaw,
+        salt,
+        iv,
         contextHash,
-        expectedContextHash,
+        body: ciphertext.slice(PAYLOAD_HEADER_V2_BYTES),
     };
 }
 
-async function decryptElectionPayloadInternal(
+export async function decryptElectionPayload(
     ciphertext: Uint8Array,
     privateKeyInput: Uint8Array | CryptoKey,
-    context: ElectionPayloadContext | undefined,
-    allowLegacyPayload: boolean
+    context: ElectionPayloadContext
 ): Promise<Uint8Array> {
-    const envelope = parsePayloadEnvelope(ciphertext, allowLegacyPayload);
-
-    let payloadInfo: Uint8Array = PAYLOAD_INFO_V1;
-    let contextHash: Uint8Array | undefined;
-    let expectedContextHash: Uint8Array | undefined;
+    const envelope = parsePayloadEnvelope(ciphertext);
 
     const cryptoApi = assertWebCrypto();
     const privateKey =
@@ -1036,11 +836,13 @@ async function decryptElectionPayloadInternal(
     assertPrivateX25519Key(privateKey);
 
     let sharedSecret: Uint8Array | undefined;
+    let payloadInfo: Uint8Array | undefined;
+    let expectedContextHash: Uint8Array | undefined;
     try {
-        const decryptionContext = await resolveDecryptionContext(envelope.version, ciphertext, context);
-        payloadInfo = decryptionContext.payloadInfo;
-        contextHash = decryptionContext.contextHash;
-        expectedContextHash = decryptionContext.expectedContextHash;
+        expectedContextHash = await hashPayloadContext(normalizePayloadContext(context));
+        if (!constantTimeEqual(envelope.contextHash, expectedContextHash)) {
+            throw new Error("Encrypted payload context mismatch.");
+        }
 
         const publicKey = await cryptoApi.subtle.importKey(
             "raw",
@@ -1059,6 +861,7 @@ async function decryptElectionPayloadInternal(
         );
         assertSharedSecretIsNonZero(sharedSecret);
 
+        payloadInfo = buildPayloadInfo(envelope.contextHash);
         const payloadKey = await derivePayloadKey(sharedSecret, envelope.salt, payloadInfo);
         const plaintext = await cryptoApi.subtle.decrypt(
             {
@@ -1071,41 +874,17 @@ async function decryptElectionPayloadInternal(
         );
 
         return new Uint8Array(plaintext);
-    } catch (error) {
-        if (error instanceof Error && /context mismatch/i.test(error.message)) {
-            throw error;
-        }
+    } catch {
         throw new Error("Failed to decrypt election payload.");
     } finally {
         wipeBytes(sharedSecret);
         wipeBytes(envelope.ephemeralPublicKeyRaw);
         wipeBytes(envelope.salt);
         wipeBytes(envelope.iv);
-        wipeBytes(contextHash);
+        wipeBytes(envelope.contextHash);
         wipeBytes(expectedContextHash);
-        if (payloadInfo !== PAYLOAD_INFO_V1) {
-            wipeBytes(payloadInfo);
-        }
+        wipeBytes(payloadInfo);
     }
-}
-
-export async function decryptElectionPayload(
-    ciphertext: Uint8Array,
-    privateKeyInput: Uint8Array | CryptoKey,
-    context: ElectionPayloadContext
-): Promise<Uint8Array> {
-    return decryptElectionPayloadInternal(ciphertext, privateKeyInput, context, false);
-}
-
-/**
- * Legacy payload format (v1) kept for backward compatibility.
- * New code should use decryptElectionPayload().
- */
-export async function decryptElectionPayloadLegacy(
-    ciphertext: Uint8Array,
-    privateKeyInput: Uint8Array | CryptoKey
-): Promise<Uint8Array> {
-    return decryptElectionPayloadInternal(ciphertext, privateKeyInput, undefined, true);
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

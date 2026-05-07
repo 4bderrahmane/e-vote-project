@@ -1,10 +1,10 @@
 import {
     parseStoredElectionKeyVault,
     serializeStoredElectionKeyVault,
-    type StoredElectionKeyVault,
 } from "./electionKeys.ts";
+import type { StoredElectionKeyVault } from "./electionVault.types";
 
-const STORAGE_PREFIX = "krino:election-key-vault:";
+const STORAGE_PREFIX = "privote:election-key-vault:";
 
 function storageKey(electionPublicId: string): string {
     return `${STORAGE_PREFIX}${electionPublicId}`;

@@ -12,24 +12,17 @@ export type ElectionPayloadContext = {
     protocolDomain?: string;
 };
 
-export type ElectionVaultKdf =
-    | {
-        name: "PBKDF2-SHA256";
-        iterations: number;
-        saltB64: string;
-        secretMode?: VaultSecretMode;
-    }
-    | {
-        name: "ARGON2ID";
-        iterations: number;
-        memoryKiB: number;
-        parallelism: number;
-        saltB64: string;
-        secretMode?: VaultSecretMode;
-    };
+export type ElectionVaultKdf = {
+    name: "ARGON2ID";
+    iterations: number;
+    memoryKiB: number;
+    parallelism: number;
+    saltB64: string;
+    secretMode: VaultSecretMode;
+};
 
 export type ElectionKeyVault = {
-    version: 1 | 2;
+    version: 2;
     privateKeyAlgorithm: "X25519-PKCS8";
     publicKeyRawB64: string;
     wrapping: {
