@@ -5,9 +5,7 @@ import {
     createElectionKeyVault,
     createStoredElectionKeyVault,
     decryptElectionPayload,
-    decryptElectionPayloadLegacy,
     encryptElectionPayload,
-    encryptElectionPayloadLegacy,
     getVaultPublicKeyHex,
     parseStoredElectionKeyVault,
     serializeStoredElectionKeyVault,
@@ -80,36 +78,6 @@ describe("shared/crypto/electionKeys", function (this: Mocha.Suite) {
                     electionId: "5f0e4f23-b5b0-49bd-8c02-216ece8ac5d6",
                 }),
             /failed to decrypt election payload/i
-        );
-    });
-
-    it("supports legacy payloads without explicit context", async () => {
-        const plaintext = new TextEncoder().encode("candidate:3");
-        const { publicKeyHex, vault } = await createElectionKeyVault("very-strong-election-password");
-        const privateKey = await unlockElectionPrivateKey("very-strong-election-password", vault);
-
-        const ciphertext = await encryptElectionPayloadLegacy(plaintext, publicKeyHex);
-        const decrypted = await decryptElectionPayloadLegacy(ciphertext, privateKey);
-        assert.equal(ciphertext[0], 1);
-
-        assert.deepEqual(Array.from(decrypted), Array.from(plaintext));
-    });
-
-    it("rejects decrypting legacy payloads through strict API", async () => {
-        const plaintext = new TextEncoder().encode("candidate:4");
-        const { publicKeyHex, publicKeyFingerprint, vault } = await createElectionKeyVault(
-            "very-strong-election-password"
-        );
-        const privateKey = await unlockElectionPrivateKeyAsCryptoKey("very-strong-election-password", vault);
-        const legacyCiphertext = await encryptElectionPayloadLegacy(plaintext, publicKeyHex);
-
-        await assert.rejects(
-            () =>
-                decryptElectionPayload(legacyCiphertext, privateKey, {
-                    electionId: "1ed53c6b-1b39-4c3f-a1ab-85e2026337f0",
-                    publicKeyFingerprint,
-                }),
-            /legacy payload v1 is disabled/i
         );
     });
 
