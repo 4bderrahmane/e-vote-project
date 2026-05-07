@@ -1,32 +1,52 @@
+import { runArgon2id } from "@/crypto/argon2Runner";
 import {Identity} from "@semaphore-protocol/identity";
 
 const textEncoder = new TextEncoder();
-const CURRENT_VAULT_VERSION = 2 as const;
-const CURRENT_KDF = "PBKDF2-SHA256" as const;
+const CURRENT_VAULT_VERSION = 3 as const;
+const CURRENT_KDF = "ARGON2ID" as const;
 const CURRENT_CIPHER = "AES-GCM-256" as const;
-const CURRENT_PBKDF2_ITERATIONS = 310_000;
+const CURRENT_ARGON2_ITERATIONS = 3;
+const CURRENT_ARGON2_MEMORY_KIB = 64 * 1024;
+const CURRENT_ARGON2_PARALLELISM = 1;
 
-// These are absolute bounds for accepting metadata from an untrusted vault.
-// They are NOT your policy target.
-// They are sanity/DoS bounds.
-const MIN_ALLOWED_PBKDF2_ITERATIONS = 210_000;
-const MAX_ALLOWED_PBKDF2_ITERATIONS = 2_000_000;
+const MIN_ALLOWED_ARGON2_ITERATIONS = 1;
+const MAX_ALLOWED_ARGON2_ITERATIONS = 10;
+const MIN_ALLOWED_ARGON2_MEMORY_KIB = 8 * 1024;
+const MAX_ALLOWED_ARGON2_MEMORY_KIB = 1024 * 1024;
+const MIN_ALLOWED_ARGON2_PARALLELISM = 1;
+const MAX_ALLOWED_ARGON2_PARALLELISM = 8;
 
 const MASTER_SECRET_BYTES = 32;
-const PBKDF2_SALT_BYTES = 16;
+const KDF_SALT_BYTES = 16;
 const AES_GCM_IV_BYTES = 12;
-const MIN_PASSWORD_LENGTH = 10;
+const AES_GCM_TAG_BYTES = 16;
+export const IDENTITY_VAULT_MIN_PASSWORD_LENGTH = 16;
+const VAULT_AAD_V3_LABEL = "privote-identity-vault-v3";
+const BASE64_CANONICAL_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
-export type IdentityVault = {
-    version: 2;
+type IdentityVaultKdf = {
+    name: "ARGON2ID";
+    iterations: number;
+    memoryKiB: number;
+    parallelism: number;
+    saltB64: string;
+};
+
+type IdentityVaultBase = {
     cipher: "AES-GCM-256";
-    kdf: {
-        name: "PBKDF2-SHA256";
-        iterations: number;
-        saltB64: string;
-    };
     ivB64: string;
     ciphertextB64: string;
+};
+
+export type IdentityVault = IdentityVaultBase & {
+    version: typeof CURRENT_VAULT_VERSION;
+    kdf: IdentityVaultKdf;
+};
+
+export type IdentityVaultOptions = {
+    iterations?: number;
+    memoryKiB?: number;
+    parallelism?: number;
 };
 
 export type ElectionKey =
@@ -60,13 +80,10 @@ function normalizeExternalNullifier(value: bigint | number | string): string {
     return trimmed.replace(/^0+(?=\d)/, "");
 }
 
-/**
- * Use this helper in both registration and vote flows to avoid key-domain mismatch.
- */
 export function electionKeyFromExternalNullifier(
     value: bigint | number | string
 ): ElectionKey {
-    return { kind: "externalNullifier", value: normalizeExternalNullifier(value) };
+    return {kind: "externalNullifier", value: normalizeExternalNullifier(value)};
 }
 
 function assertWebCrypto(): Crypto {
@@ -77,27 +94,68 @@ function assertWebCrypto(): Crypto {
     return c;
 }
 
-function assertNonEmptyPassword(password: unknown): void {
-    if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
+function assertPassword(password: unknown, minLength: number): asserts password is string {
+    if (typeof password !== "string" || password.length < minLength) {
         throw new Error(
-            `Password must be a string with at least ${MIN_PASSWORD_LENGTH} characters.`
+            `Password must be a string with at least ${minLength} characters.`
         );
     }
 }
 
-function assertIterations(iterations: number): void {
+function assertArgon2Iterations(iterations: number): void {
     if (!Number.isInteger(iterations)) {
-        throw new TypeError("PBKDF2 iterations must be an integer.");
+        throw new TypeError("Argon2 iterations must be an integer.");
     }
     if (
-        iterations < MIN_ALLOWED_PBKDF2_ITERATIONS ||
-        iterations > MAX_ALLOWED_PBKDF2_ITERATIONS
+        iterations < MIN_ALLOWED_ARGON2_ITERATIONS ||
+        iterations > MAX_ALLOWED_ARGON2_ITERATIONS
     ) {
         throw new Error(
-            `PBKDF2 iterations are out of allowed range: ${iterations}. ` +
-            `Allowed range: ${MIN_ALLOWED_PBKDF2_ITERATIONS}..${MAX_ALLOWED_PBKDF2_ITERATIONS}.`
+            `Argon2 iterations are out of allowed range: ${iterations}. ` +
+            `Allowed range: ${MIN_ALLOWED_ARGON2_ITERATIONS}..${MAX_ALLOWED_ARGON2_ITERATIONS}.`
         );
     }
+}
+
+function assertArgon2MemoryKiB(memoryKiB: number): void {
+    if (!Number.isInteger(memoryKiB)) {
+        throw new TypeError("Argon2 memoryKiB must be an integer.");
+    }
+    if (
+        memoryKiB < MIN_ALLOWED_ARGON2_MEMORY_KIB ||
+        memoryKiB > MAX_ALLOWED_ARGON2_MEMORY_KIB
+    ) {
+        throw new Error(
+            `Argon2 memoryKiB is out of allowed range: ${memoryKiB}. ` +
+            `Allowed range: ${MIN_ALLOWED_ARGON2_MEMORY_KIB}..${MAX_ALLOWED_ARGON2_MEMORY_KIB}.`
+        );
+    }
+}
+
+function assertArgon2Parallelism(parallelism: number): void {
+    if (!Number.isInteger(parallelism)) {
+        throw new TypeError("Argon2 parallelism must be an integer.");
+    }
+    if (
+        parallelism < MIN_ALLOWED_ARGON2_PARALLELISM ||
+        parallelism > MAX_ALLOWED_ARGON2_PARALLELISM
+    ) {
+        throw new Error(
+            `Argon2 parallelism is out of allowed range: ${parallelism}. ` +
+            `Allowed range: ${MIN_ALLOWED_ARGON2_PARALLELISM}..${MAX_ALLOWED_ARGON2_PARALLELISM}.`
+        );
+    }
+}
+
+function assertVaultKdf(kdf: IdentityVault["kdf"]): void {
+    if (kdf.name === CURRENT_KDF) {
+        assertArgon2Iterations(kdf.iterations);
+        assertArgon2MemoryKiB(kdf.memoryKiB);
+        assertArgon2Parallelism(kdf.parallelism);
+        return;
+    }
+
+    throw new Error(`Unsupported KDF: ${(kdf as { name?: unknown }).name}`);
 }
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -109,44 +167,65 @@ function asBufferSource(bytes: Uint8Array): BufferSource {
 }
 
 function base64Encode(bytes: Uint8Array): string {
-    let binary = "";
-    for (const b of bytes) binary += String.fromCodePoint(b);
-    return btoa(binary);
+    if (typeof globalThis.btoa === "function") {
+        let binary = "";
+        for (const b of bytes) binary += String.fromCodePoint(b);
+        return globalThis.btoa(binary);
+    }
+
+    return Buffer.from(bytes).toString("base64");
 }
 
 function base64DecodeStrict(b64: unknown, label: string): Uint8Array {
     if (typeof b64 !== "string" || b64.length === 0) {
         throw new Error(`${label} must be a non-empty base64 string.`);
     }
-
-    let binary: string;
-    try {
-        binary = atob(b64);
-    } catch {
-        throw new Error(`${label} is not valid base64.`);
+    if (!BASE64_CANONICAL_PATTERN.test(b64)) {
+        throw new Error(`${label} is not canonical base64.`);
     }
 
-    const out = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-        out[i] = binary.charCodeAt(i);
+    let out: Uint8Array;
+    if (typeof globalThis.atob === "function") {
+        let binary: string;
+        try {
+            binary = globalThis.atob(b64);
+        } catch {
+            throw new Error(`${label} is not valid base64.`);
+        }
+
+        out = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            const codePoint = binary.codePointAt(i);
+            if (codePoint === undefined || codePoint > 0xff) {
+                throw new Error(`${label} contains invalid binary data.`);
+            }
+            out[i] = codePoint;
+        }
+    } else {
+        try {
+            out = new Uint8Array(Buffer.from(b64, "base64"));
+        } catch {
+            throw new Error(`${label} is not valid base64.`);
+        }
+    }
+
+    if (base64Encode(out) !== b64) {
+        throw new Error(`${label} is not canonical base64.`);
     }
 
     return out;
 }
 
-/**
- * Best-effort zeroization.
- * JS cannot guarantee this because of GC/runtime behavior,
- * but wiping owned Uint8Arrays is still worth doing.
- */
+// best-effort zeroization for JS
 export function wipeBytes(bytes: Uint8Array | undefined | null): void {
     if (!bytes) return;
     bytes.fill(0);
 }
 
 function validateVaultShape(vault: IdentityVault): void {
-    if (vault.version !== CURRENT_VAULT_VERSION) {
-        throw new Error(`Unsupported identity vault version: ${vault.version}`);
+    const version = (vault as { version?: unknown }).version;
+    if (version !== CURRENT_VAULT_VERSION) {
+        throw new Error(`Unsupported identity vault version: ${String(version)}`);
     }
 
     if (vault.cipher !== CURRENT_CIPHER) {
@@ -154,18 +233,18 @@ function validateVaultShape(vault: IdentityVault): void {
     }
 
     if (vault.kdf?.name !== CURRENT_KDF) {
-        throw new Error(`Unsupported KDF: ${vault.kdf?.name}`);
+        throw new Error("Identity vault version 3 only supports ARGON2ID.");
     }
 
-    assertIterations(vault.kdf.iterations);
+    assertVaultKdf(vault.kdf);
 
     const salt = base64DecodeStrict(vault.kdf.saltB64, "saltB64");
     const iv = base64DecodeStrict(vault.ivB64, "ivB64");
     const ciphertext = base64DecodeStrict(vault.ciphertextB64, "ciphertextB64");
 
-    if (salt.length !== PBKDF2_SALT_BYTES) {
+    if (salt.length !== KDF_SALT_BYTES) {
         throw new Error(
-            `Invalid salt length: ${salt.length}. Expected ${PBKDF2_SALT_BYTES} bytes.`
+            `Invalid salt length: ${salt.length}. Expected ${KDF_SALT_BYTES} bytes.`
         );
     }
 
@@ -175,63 +254,126 @@ function validateVaultShape(vault: IdentityVault): void {
         );
     }
 
-    // Ciphertext must contain at least the encrypted 32-byte master secret + 16-byte GCM tag.
-    if (ciphertext.length < MASTER_SECRET_BYTES + 16) {
+    if (ciphertext.length < MASTER_SECRET_BYTES + AES_GCM_TAG_BYTES) {
         throw new Error(
             `Ciphertext is too short: ${ciphertext.length}. ` +
-            `Expected at least ${MASTER_SECRET_BYTES + 16} bytes.`
+            `Expected at least ${MASTER_SECRET_BYTES + AES_GCM_TAG_BYTES} bytes.`
         );
     }
 }
 
-/**
- * Stable metadata AAD used for AES-GCM authentication.
- * If the metadata is tampered with, decryption fails.
- */
-function buildVaultAAD(vault: Pick<IdentityVault, "version" | "cipher" | "kdf">): Uint8Array {
-    const stable = JSON.stringify({
-        version: vault.version,
-        cipher: vault.cipher,
-        kdf: {
-            name: vault.kdf.name,
-            iterations: vault.kdf.iterations,
-            saltB64: vault.kdf.saltB64,
-        },
-    });
+function buildStructuredAad(label: string, fields: Array<readonly [string, string]>): Uint8Array {
+    const parts = [label];
+    for (const [key, value] of fields) {
+        parts.push(`${key.length}:${key}:${value.length}:${value}`);
+    }
+    return textEncoder.encode(parts.join("|"));
+}
 
-    return textEncoder.encode(stable);
+
+function buildVaultAAD(vault: Pick<IdentityVault, "version" | "cipher" | "kdf">): Uint8Array {
+    return buildStructuredAad(VAULT_AAD_V3_LABEL, [
+        ["version", String(vault.version)],
+        ["cipher", vault.cipher],
+        ["kdfName", vault.kdf.name],
+        ["kdfIterations", String(vault.kdf.iterations)],
+        ["kdfMemoryKiB", String(vault.kdf.memoryKiB)],
+        ["kdfParallelism", String(vault.kdf.parallelism)],
+        ["kdfSaltB64", vault.kdf.saltB64],
+    ]);
 }
 
 async function deriveAesKeyFromPassword(
     password: string,
     salt: Uint8Array,
-    iterations: number
+    kdf: IdentityVault["kdf"]
 ): Promise<CryptoKey> {
     const cryptoApi = assertWebCrypto();
+    assertVaultKdf(kdf);
 
-    const keyMaterial = await cryptoApi.subtle.importKey(
-        "raw",
-        textEncoder.encode(password),
-        "PBKDF2",
-        false,
-        ["deriveKey"]
-    );
+    const passwordBytes = textEncoder.encode(password);
+    let keyBytes: Uint8Array | undefined;
 
-    return cryptoApi.subtle.deriveKey(
-        {
-            name: "PBKDF2",
-            salt: asBufferSource(salt),
-            iterations,
-            hash: "SHA-256",
+    try {
+        keyBytes = await runArgon2id(passwordBytes, salt, {
+            t: kdf.iterations,
+            m: kdf.memoryKiB,
+            p: kdf.parallelism,
+            dkLen: 32,
+        });
+
+        return await cryptoApi.subtle.importKey(
+            "raw",
+            asBufferSource(keyBytes),
+            {name: "AES-GCM"},
+            false,
+            ["encrypt", "decrypt"]
+        );
+    } finally {
+        wipeBytes(keyBytes);
+        wipeBytes(passwordBytes);
+    }
+}
+
+function resolveIdentityVaultOptions(options: IdentityVaultOptions = {}): Required<IdentityVaultOptions> {
+    return {
+        iterations: options.iterations ?? CURRENT_ARGON2_ITERATIONS,
+        memoryKiB: options.memoryKiB ?? CURRENT_ARGON2_MEMORY_KIB,
+        parallelism: options.parallelism ?? CURRENT_ARGON2_PARALLELISM,
+    };
+}
+
+async function encryptMasterSecret(
+    password: string,
+    masterSecret: Uint8Array,
+    options: IdentityVaultOptions = {}
+): Promise<IdentityVault> {
+    if (masterSecret.length !== MASTER_SECRET_BYTES) {
+        throw new Error(`Invalid master secret length: ${masterSecret.length}`);
+    }
+
+    const cryptoApi = assertWebCrypto();
+    const resolvedOptions = resolveIdentityVaultOptions(options);
+    const salt = cryptoApi.getRandomValues(new Uint8Array(KDF_SALT_BYTES));
+    const iv = cryptoApi.getRandomValues(new Uint8Array(AES_GCM_IV_BYTES));
+
+    const vaultBase = {
+        version: CURRENT_VAULT_VERSION,
+        cipher: CURRENT_CIPHER,
+        kdf: {
+            name: CURRENT_KDF,
+            iterations: resolvedOptions.iterations,
+            memoryKiB: resolvedOptions.memoryKiB,
+            parallelism: resolvedOptions.parallelism,
+            saltB64: base64Encode(salt),
         },
-        keyMaterial,
-        {
-            name: "AES-GCM",
-            length: 256,
-        },
-        false,
-        ["encrypt", "decrypt"]
-    );
+    } as const;
+
+    assertVaultKdf(vaultBase.kdf);
+
+    const aad = buildVaultAAD(vaultBase);
+    const aesKey = await deriveAesKeyFromPassword(password, salt, vaultBase.kdf);
+
+    try {
+        const ciphertext = await cryptoApi.subtle.encrypt(
+            {
+                name: "AES-GCM",
+                iv: asBufferSource(iv),
+                additionalData: asBufferSource(aad),
+            },
+            aesKey,
+            asBufferSource(masterSecret)
+        );
+
+        return {
+            ...vaultBase,
+            ivB64: base64Encode(iv),
+            ciphertextB64: base64Encode(new Uint8Array(ciphertext)),
+        };
+    } finally {
+        wipeBytes(salt);
+        wipeBytes(iv);
+    }
 }
 
 function normalizeElectionKey(key: ElectionKey): string {
@@ -298,73 +440,29 @@ async function deriveElectionSeed(
     return new Uint8Array(mac); // 32 bytes
 }
 
-/**
- * Creates a fresh random master secret and returns an encrypted vault.
- *
- * Store this vault in localStorage / IndexedDB / backend profile storage, etc.
- * The vault is safe to store, but the password remains security-critical.
- */
 export async function createIdentityVault(
     password: string,
-    iterations = CURRENT_PBKDF2_ITERATIONS
+    options: IdentityVaultOptions = {}
 ): Promise<IdentityVault> {
-    assertNonEmptyPassword(password);
-    assertIterations(iterations);
+    assertPassword(password, IDENTITY_VAULT_MIN_PASSWORD_LENGTH);
 
     const cryptoApi = assertWebCrypto();
-
     const masterSecret = cryptoApi.getRandomValues(
         new Uint8Array(MASTER_SECRET_BYTES)
     );
-    const salt = cryptoApi.getRandomValues(new Uint8Array(PBKDF2_SALT_BYTES));
-    const iv = cryptoApi.getRandomValues(new Uint8Array(AES_GCM_IV_BYTES));
-
-    const vaultBase = {
-        version: CURRENT_VAULT_VERSION,
-        cipher: CURRENT_CIPHER,
-        kdf: {
-            name: CURRENT_KDF,
-            iterations,
-            saltB64: base64Encode(salt),
-        },
-    } as const;
-
-    const aad = buildVaultAAD(vaultBase);
-    const aesKey = await deriveAesKeyFromPassword(password, salt, iterations);
 
     try {
-        const ciphertext = await cryptoApi.subtle.encrypt(
-            {
-                name: "AES-GCM",
-                iv: asBufferSource(iv),
-                additionalData: asBufferSource(aad),
-            },
-            aesKey,
-            asBufferSource(masterSecret)
-        );
-
-        return {
-            ...vaultBase,
-            ivB64: base64Encode(iv),
-            ciphertextB64: base64Encode(new Uint8Array(ciphertext)),
-        };
+        return await encryptMasterSecret(password, masterSecret, options);
     } finally {
         wipeBytes(masterSecret);
     }
 }
 
-/**
- * Decrypts the locally stored master secret from the vault using the user's password.
- *
- * Note:
- * - callers should wipe the returned Uint8Array when done, if they keep it around.
- * - prefer using deriveElectionIdentityFromVault() which wipes internally.
- */
 export async function decryptMasterSecret(
     password: string,
     vault: IdentityVault
 ): Promise<Uint8Array> {
-    assertNonEmptyPassword(password);
+    assertPassword(password, IDENTITY_VAULT_MIN_PASSWORD_LENGTH);
     validateVaultShape(vault);
 
     const cryptoApi = assertWebCrypto();
@@ -382,7 +480,7 @@ export async function decryptMasterSecret(
     const aesKey = await deriveAesKeyFromPassword(
         password,
         salt,
-        vault.kdf.iterations
+        vault.kdf
     );
 
     let plaintext: ArrayBuffer;
@@ -410,13 +508,6 @@ export async function decryptMasterSecret(
     return masterSecret;
 }
 
-/**
- * Returns true if this vault should be re-encrypted with current policy.
- *
- * Example trigger:
- * - iteration count is below current target
- * - future versions/KDFs differ
- */
 export function needsVaultUpgrade(vault: IdentityVault): boolean {
     try {
         validateVaultShape(vault);
@@ -424,74 +515,34 @@ export function needsVaultUpgrade(vault: IdentityVault): boolean {
         return true;
     }
 
+    if (vault.version !== CURRENT_VAULT_VERSION || vault.kdf.name !== CURRENT_KDF) {
+        return true;
+    }
+
     return (
-        vault.version !== CURRENT_VAULT_VERSION ||
         vault.cipher !== CURRENT_CIPHER ||
-        vault.kdf.name !== CURRENT_KDF ||
-        vault.kdf.iterations < CURRENT_PBKDF2_ITERATIONS
+        vault.kdf.iterations < CURRENT_ARGON2_ITERATIONS ||
+        vault.kdf.memoryKiB < CURRENT_ARGON2_MEMORY_KIB ||
+        vault.kdf.parallelism < CURRENT_ARGON2_PARALLELISM
     );
 }
 
-/**
- * Rewraps an existing vault using current policy or caller-provided stronger iterations.
- *
- * Use this after a successful unlock if you want seamless migration.
- */
 export async function upgradeIdentityVault(
     password: string,
     vault: IdentityVault,
-    iterations = CURRENT_PBKDF2_ITERATIONS
+    options: IdentityVaultOptions = {}
 ): Promise<IdentityVault> {
-    assertNonEmptyPassword(password);
-    assertIterations(iterations);
+    assertPassword(password, IDENTITY_VAULT_MIN_PASSWORD_LENGTH);
 
     const masterSecret = await decryptMasterSecret(password, vault);
 
     try {
-        const cryptoApi = assertWebCrypto();
-        const salt = cryptoApi.getRandomValues(new Uint8Array(PBKDF2_SALT_BYTES));
-        const iv = cryptoApi.getRandomValues(new Uint8Array(AES_GCM_IV_BYTES));
-
-        const nextVaultBase = {
-            version: CURRENT_VAULT_VERSION,
-            cipher: CURRENT_CIPHER,
-            kdf: {
-                name: CURRENT_KDF,
-                iterations,
-                saltB64: base64Encode(salt),
-            },
-        } as const;
-
-        const aad = buildVaultAAD(nextVaultBase);
-        const aesKey = await deriveAesKeyFromPassword(password, salt, iterations);
-
-        const ciphertext = await cryptoApi.subtle.encrypt(
-            {
-                name: "AES-GCM",
-                iv: asBufferSource(iv),
-                additionalData: asBufferSource(aad),
-            },
-            aesKey,
-            asBufferSource(masterSecret)
-        );
-
-        return {
-            ...nextVaultBase,
-            ivB64: base64Encode(iv),
-            ciphertextB64: base64Encode(new Uint8Array(ciphertext)),
-        };
+        return await encryptMasterSecret(password, masterSecret, options);
     } finally {
         wipeBytes(masterSecret);
     }
 }
 
-/**
- * Derives a Semaphore identity for one specific election from the decrypted master secret.
- *
- * Use the same election key at:
- * - registration time (to compute the commitment to add on-chain)
- * - vote time (to generate the proof)
- */
 export async function deriveElectionIdentityFromMasterSecret(
     masterSecret: Uint8Array,
     electionKey: ElectionKey
@@ -510,12 +561,6 @@ export async function deriveElectionIdentityFromMasterSecret(
     }
 }
 
-/**
- * Convenience helper:
- * - decrypt the vault
- * - derive the election-specific identity
- * - wipe the decrypted master secret before returning
- */
 export async function deriveElectionIdentityFromVault(
     password: string,
     vault: IdentityVault,
@@ -530,17 +575,12 @@ export async function deriveElectionIdentityFromVault(
     }
 }
 
-/**
- * Convenience helper for first-time enrollment:
- * - creates a fresh vault
- * - immediately derives the election identity
- */
 export async function createVaultAndElectionIdentity(
     password: string,
     electionKey: ElectionKey,
-    iterations = CURRENT_PBKDF2_ITERATIONS
+    options: IdentityVaultOptions = {}
 ): Promise<{ vault: IdentityVault; identity: Identity }> {
-    const vault = await createIdentityVault(password, iterations);
+    const vault = await createIdentityVault(password, options);
     const identity = await deriveElectionIdentityFromVault(password, vault, electionKey);
 
     return {vault, identity};
