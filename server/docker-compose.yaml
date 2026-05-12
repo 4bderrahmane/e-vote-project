@@ -2,6 +2,8 @@ services:
   postgres:
     image: postgres:16
     container_name: privote-postgres
+    restart: always
+    init: true
     networks:
       - privote
     environment:
@@ -9,25 +11,35 @@ services:
       POSTGRES_USER: ${POSTGRES_SUPERUSER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_SUPERPASS:?POSTGRES_SUPERPASS is required}
       APP_DB_NAME: ${APP_DB_NAME:-privote}
-      APP_DB_USER: ${DB_USERNAME:?DB_USERNAME is required}
-      APP_DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      APP_DB_USER: ${APP_DB_USER:?APP_DB_USER is required}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD is required}
       KEYCLOAK_DB_NAME: ${KEYCLOAK_DB_NAME:-keycloak}
       KEYCLOAK_DB_USER: ${KEYCLOAK_DB_USER:-keycloak}
       KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD is required}
+      PROOF_DB_NAME: ${PROOF_DB_NAME:-proofdb}
+      PROOF_DB_USER: ${PROOF_DB_USER:-proof}
+      PROOF_DB_PASSWORD: ${PROOF_DB_PASSWORD:?PROOF_DB_PASSWORD is required}
     ports:
-      - "127.0.0.1:5433:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.0.0
+    image: quay.io/keycloak/keycloak:26.6.1
     container_name: keycloak
+    restart: always
+    init: true
     networks:
       - privote
     command: start-dev
@@ -39,25 +51,40 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres:5432/${KEYCLOAK_DB_NAME:-keycloak}
       KC_DB_USERNAME: ${KEYCLOAK_DB_USER:-keycloak}
       KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD is required}
-
-      BACKEND_SERVICE_URL: "http://host.docker.internal:9090"
-      SYNC_SECRET: ${SYNC_SECRET:?SYNC_SECRET is required}
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:?KC_BOOTSTRAP_ADMIN_PASSWORD is required}
+      BACKEND_SERVICE_URL: "http://host.docker.internal:9090"
+      SYNC_SECRET: ${SYNC_SECRET:?SYNC_SECRET is required}
     ports:
-      - "127.0.0.1:8080:8080"
+      - "8080:8080"
     volumes:
-      - keycloak_data:/opt/keycloak/data
+      - ./data/keycloak:/opt/keycloak/data
       - ./docker/keycloak/keycloak.conf:/opt/keycloak/conf/keycloak.conf:ro
-      - ../keycloak-synchronizer/target/keycloak-synchronizer-1.0-SNAPSHOT.jar:/opt/keycloak/providers/keycloak-synchronizer.jar
+      - ../keycloak-synchronizer/target/keycloak-synchronizer-1.0-SNAPSHOT.jar:/opt/keycloak/providers/keycloak-synchronizer.jar:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
-
-volumes:
-  postgres_data:
-    name: privote_postgres_data
-  keycloak_data:
-    name: privote_keycloak_data
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - >-
+          [ -f /tmp/HealthCheck.java ] || echo "public class HealthCheck {
+          public static void main(String[] args) throws java.lang.Throwable {
+          System.exit(java.net.HttpURLConnection.HTTP_OK ==
+          ((java.net.HttpURLConnection)new
+          java.net.URL(args[0]).openConnection()).getResponseCode() ? 0 : 1); }
+          }" > /tmp/HealthCheck.java && java /tmp/HealthCheck.java
+          http://localhost:9000/health/ready
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   privote:

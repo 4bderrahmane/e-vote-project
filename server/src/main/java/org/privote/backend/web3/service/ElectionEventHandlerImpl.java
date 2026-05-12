@@ -10,12 +10,12 @@ import org.privote.backend.entity.enums.ElectionPhase;
 import org.privote.backend.entity.enums.ParticipationStatus;
 import org.privote.backend.repository.CitizenElectionParticipationRepository;
 import org.privote.backend.repository.ElectionRepository;
+import org.privote.backend.repository.VoterCommitmentRepository;
+import org.privote.backend.web3.listener.ElectionEventHandler;
 import org.privote.backend.web3.listener.events.ElectionDeployedEvent;
 import org.privote.backend.web3.listener.events.ElectionEndedEvent;
-import org.privote.backend.web3.listener.ElectionEventHandler;
 import org.privote.backend.web3.listener.events.ElectionStartedEvent;
 import org.privote.backend.web3.listener.events.MemberAddedEvent;
-import org.privote.backend.repository.VoterCommitmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +33,40 @@ public class ElectionEventHandlerImpl implements ElectionEventHandler
     private final VoterCommitmentRepository voterCommitmentRepository;
     private final CitizenElectionParticipationRepository participationRepository;
 
+    private static Instant toInstantSeconds(BigInteger epochSeconds)
+    {
+        if (epochSeconds == null) return null;
+        try
+        {
+            return Instant.ofEpochSecond(epochSeconds.longValueExact());
+        } catch (ArithmeticException ex)
+        {
+            return null;
+        }
+    }
+
+    private static String normalizeAddress(String address)
+    {
+        if (address == null) return null;
+        String a = address.trim();
+        if (!a.startsWith("0x")) a = "0x" + a;
+        if (a.length() != 42) return null;
+        return a.toLowerCase();
+    }
+
+    private static Long toLongOrNull(BigInteger value)
+    {
+        if (value == null) return null;
+
+        try
+        {
+            return value.longValueExact();
+        } catch (ArithmeticException ex)
+        {
+            return null;
+        }
+    }
+
     @Override
     @Transactional
     public void onElectionDeployed(ElectionDeployedEvent event)
@@ -45,7 +79,6 @@ public class ElectionEventHandlerImpl implements ElectionEventHandler
             return;
         }
 
-        // 1) Find election by uuid (publicId)
         Election election = electionRepository.findByPublicId(event.uuid()).orElse(null);
         if (election == null)
         {
@@ -54,20 +87,19 @@ public class ElectionEventHandlerImpl implements ElectionEventHandler
             return;
         }
 
-        // 2) Idempotency: already linked?
+        // For Idempotency
         String existing = normalizeAddress(election.getContractAddress());
         if (existing != null)
         {
             if (existing.equals(contract))
             {
-                return; // already processed
+                return;
             }
             log.error("Election {} already linked to contract={}, but event says contract={}. tx={}",
                     election.getPublicId(), existing, contract, event.txHash());
             return;
         }
 
-        // 3) Safety: contract not already used by another election
         Optional<Election> other = electionRepository.findByContractAddressIgnoreCase(contract);
         if (other.isPresent())
         {
@@ -76,7 +108,6 @@ public class ElectionEventHandlerImpl implements ElectionEventHandler
             return;
         }
 
-        // 4) External nullifier consistency
         if (event.externalNullifier() == null || event.externalNullifier().signum() <= 0)
         {
             log.error("ElectionDeployed has invalid externalNullifier. uuid={}, tx={}", event.uuid(), event.txHash());
@@ -104,20 +135,16 @@ public class ElectionEventHandlerImpl implements ElectionEventHandler
             }
         }
 
-        // 6) Apply updates
         election.setContractAddress(contract);
 
-        // If you want chain to be authoritative for endTime:
         if (chainEnd != null)
         {
             election.setEndTime(chainEnd);
         }
 
-        // Ensure externalNullifier is stored (if you didn't fill it pre-deploy)
         election.setExternalNullifier(event.externalNullifier());
 
-        // You said phase mirrors Semaphore. After deploy you're still in REGISTRATION (typically).
-        // election.setPhase(ElectionPhase.REGISTRATION);
+        election.setPhase(ElectionPhase.REGISTRATION);
 
         log.info("Linked election uuid={} to contract={} at block={} logIndex={} tx={}",
                 election.getPublicId(), contract, event.blockNumber(), event.logIndex(), event.txHash());
@@ -268,44 +295,6 @@ public class ElectionEventHandlerImpl implements ElectionEventHandler
             election.setPhase(ElectionPhase.TALLY);
             log.info("Marked election uuid={} as TALLY from contract={} at block={} logIndex={} tx={}",
                     election.getPublicId(), contract, event.blockNumber(), event.logIndex(), event.txHash());
-        }
-    }
-
-    private static Instant toInstantSeconds(BigInteger epochSeconds)
-    {
-        if (epochSeconds == null) return null;
-        try
-        {
-            return Instant.ofEpochSecond(epochSeconds.longValueExact());
-        } catch (ArithmeticException ex)
-        {
-            return null;
-        }
-    }
-
-    private static String normalizeAddress(String addr)
-    {
-        if (addr == null) return null;
-        String a = addr.trim();
-        if (!a.startsWith("0x")) a = "0x" + a;
-        if (a.length() != 42) return null;
-        return a.toLowerCase();
-    }
-
-    private static Long toLongOrNull(BigInteger value)
-    {
-        if (value == null)
-        {
-            return null;
-        }
-
-        try
-        {
-            return value.longValueExact();
-        }
-        catch (ArithmeticException ex)
-        {
-            return null;
         }
     }
 }

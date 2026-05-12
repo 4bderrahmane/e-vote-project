@@ -41,6 +41,69 @@ public class ElectionContractEventListener
     private final ElectionRepository electionRepository;
     private final ElectionEventHandler handler;
 
+    private static boolean shouldSkip(BigInteger blockNumber, BigInteger logIndex, BigInteger resumeBlock, BigInteger resumeLogIndex, Cursor currentCursor)
+    {
+        if (blockNumber.compareTo(currentCursor.nextBlock()) < 0)
+        {
+            return true;
+        }
+
+        if (blockNumber.equals(currentCursor.nextBlock()) && logIndex.compareTo(currentCursor.nextLogIndex()) < 0)
+        {
+            return true;
+        }
+
+        return resumeBlock != null && resumeBlock.equals(blockNumber) && logIndex.compareTo(resumeLogIndex) < 0;
+    }
+
+    private static String cursorKey(String contractAddress)
+    {
+        return CURSOR_KEY_PREFIX + contractAddress.toLowerCase();
+    }
+
+    private static BigInteger min(BigInteger a, BigInteger b)
+    {
+        return a.compareTo(b) <= 0 ? a : b;
+    }
+
+    private static String normalizeAddress(String address)
+    {
+        if (address == null)
+        {
+            return null;
+        }
+
+        String value = address.trim();
+        if (!value.startsWith("0x"))
+        {
+            value = "0x" + value;
+        }
+        if (value.length() != 42)
+        {
+            return null;
+        }
+        return value.toLowerCase();
+    }
+
+    private static String normalizeHash(String hash)
+    {
+        if (hash == null)
+        {
+            return null;
+        }
+
+        String value = hash.trim();
+        if (value.isEmpty())
+        {
+            return null;
+        }
+        if (!value.startsWith("0x"))
+        {
+            value = "0x" + value;
+        }
+        return value.toLowerCase();
+    }
+
     @Scheduled(fixedDelayString = "${web3j.listener.poll-interval-ms:5000}")
     public void pollElectionContractEvents()
     {
@@ -48,8 +111,7 @@ public class ElectionContractEventListener
         try
         {
             safeTo = computeSafeToBlock();
-        }
-        catch (IOException e)
+        } catch (IOException e)
         {
             log.warn("Failed to read latest block number for election contracts: {}", e.getMessage(), e);
             return;
@@ -78,8 +140,7 @@ public class ElectionContractEventListener
         try
         {
             cursor = validateCursor(contractAddress, loadOrInitCursor(contractAddress));
-        }
-        catch (IOException e)
+        } catch (IOException e)
         {
             log.warn("Failed to validate election cursor for {}: {}", contractAddress, e.getMessage(), e);
             return;
@@ -113,13 +174,11 @@ public class ElectionContractEventListener
                 cursor = cursor.advancePastBlock(toBlock, fetchBlockHash(toBlock));
                 saveCursor(contractAddress, cursor);
                 fromBlock = toBlock.add(BigInteger.ONE);
-            }
-            catch (IOException e)
+            } catch (IOException e)
             {
                 log.warn("eth_getLogs RPC error for contract={} ({}..{}): {}", contractAddress, fromBlock, toBlock, e.getMessage(), e);
                 return;
-            }
-            catch (RuntimeException e)
+            } catch (RuntimeException e)
             {
                 log.error("Election contract listener failed for contract={} ({}..{}): {}", contractAddress, fromBlock, toBlock, e.getMessage(), e);
                 return;
@@ -259,68 +318,5 @@ public class ElectionContractEventListener
 
         EthBlock.Block block = response.getBlock();
         return block == null ? null : normalizeHash(block.getHash());
-    }
-
-    private static boolean shouldSkip(BigInteger blockNumber, BigInteger logIndex, BigInteger resumeBlock, BigInteger resumeLogIndex, Cursor currentCursor)
-    {
-        if (blockNumber.compareTo(currentCursor.nextBlock()) < 0)
-        {
-            return true;
-        }
-
-        if (blockNumber.equals(currentCursor.nextBlock()) && logIndex.compareTo(currentCursor.nextLogIndex()) < 0)
-        {
-            return true;
-        }
-
-        return resumeBlock != null && resumeBlock.equals(blockNumber) && logIndex.compareTo(resumeLogIndex) < 0;
-    }
-
-    private static String cursorKey(String contractAddress)
-    {
-        return CURSOR_KEY_PREFIX + contractAddress.toLowerCase();
-    }
-
-    private static BigInteger min(BigInteger a, BigInteger b)
-    {
-        return a.compareTo(b) <= 0 ? a : b;
-    }
-
-    private static String normalizeAddress(String address)
-    {
-        if (address == null)
-        {
-            return null;
-        }
-
-        String value = address.trim();
-        if (!value.startsWith("0x"))
-        {
-            value = "0x" + value;
-        }
-        if (value.length() != 42)
-        {
-            return null;
-        }
-        return value.toLowerCase();
-    }
-
-    private static String normalizeHash(String hash)
-    {
-        if (hash == null)
-        {
-            return null;
-        }
-
-        String value = hash.trim();
-        if (value.isEmpty())
-        {
-            return null;
-        }
-        if (!value.startsWith("0x"))
-        {
-            value = "0x" + value;
-        }
-        return value.toLowerCase();
     }
 }

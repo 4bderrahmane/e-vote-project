@@ -9,12 +9,12 @@
         <relativePath/>
     </parent>
 
-    <groupId>org.krino</groupId>
-    <artifactId>voting-system</artifactId>
+    <groupId>org.privote</groupId>
+    <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>voting-system</name>
-    <description>voting system using blockchain with spring boot</description>
+    <name>privote</name>
+    <description>privote is a voting application that uses blockchain</description>
     <url/>
     <licenses>
         <license/>

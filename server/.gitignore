@@ -38,3 +38,6 @@ HELP.md
 Thumbs.db
 
 .migration
+
+# Docker bind-mount data (postgres + keycloak) — persists across reboots, never commit
+data/

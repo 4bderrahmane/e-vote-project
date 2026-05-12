@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.privote.backend.entity.Election;
 import org.privote.backend.entity.enums.CandidateStatus;
 import org.privote.backend.entity.enums.ElectionPhase;
+import org.privote.backend.exception.BusinessConflictException;
+import org.privote.backend.exception.OperationFailedException;
+import org.privote.backend.exception.RequestValidationException;
 import org.privote.backend.exception.ResourceNotFoundException;
 import org.privote.backend.repository.CandidateRepository;
 import org.privote.backend.repository.ElectionRepository;
@@ -23,23 +26,76 @@ public class ElectionLifecycleService
     private final ElectionFactoryClient electionFactoryClient;
     private final ElectionClient electionClient;
 
+    private static boolean hasContractAddress(Election election)
+    {
+        return election.getContractAddress() != null && !election.getContractAddress().isBlank();
+    }
+
+    private static void ensureValidEncryptionKey(Election election)
+    {
+        byte[] encryptionKey = election.getEncryptionPublicKey();
+        if (encryptionKey == null || encryptionKey.length != 32)
+        {
+            throw new BusinessConflictException("Election encryptionPublicKey must be exactly 32 bytes for deployment");
+        }
+    }
+
+    private static void requireDeployed(Election election)
+    {
+        if (!hasContractAddress(election))
+        {
+            throw new BusinessConflictException("Election must be deployed before this action");
+        }
+    }
+
+    private static void alignExternalNullifier(Election election)
+    {
+        java.math.BigInteger canonical = ElectionService.deriveExternalNullifier(election.getPublicId());
+        if (election.getExternalNullifier() != null && !canonical.equals(election.getExternalNullifier()))
+        {
+            throw new BusinessConflictException("Election externalNullifier does not match the canonical UUID-derived value");
+        }
+        election.setExternalNullifier(canonical);
+    }
+
+    private static String rootCauseMessage(Exception ex)
+    {
+        Throwable current = ex;
+        while (current.getCause() != null)
+        {
+            current = current.getCause();
+        }
+
+        String message = current.getMessage();
+        if (message == null || message.isBlank())
+        {
+            return current.getClass().getSimpleName();
+        }
+        return message;
+    }
+
+    private static boolean isZeroAddress(String address)
+    {
+        return address == null || "0x0000000000000000000000000000000000000000".equalsIgnoreCase(address);
+    }
+
     public Election deployElection(UUID publicId)
     {
         Election election = requireElection(publicId);
 
         if (hasContractAddress(election))
         {
-            throw new IllegalStateException("Election is already deployed");
+            throw new BusinessConflictException("Election is already deployed");
         }
 
         if (election.getEndTime() == null)
         {
-            throw new IllegalStateException("Election endTime must be set before deployment");
+            throw new BusinessConflictException("Election endTime must be set before deployment");
         }
 
         if (!election.getEndTime().isAfter(Instant.now()))
         {
-            throw new IllegalStateException("Election endTime must be in the future before deployment");
+            throw new BusinessConflictException("Election endTime must be in the future before deployment");
         }
 
         ensureValidEncryptionKey(election);
@@ -64,10 +120,13 @@ public class ElectionLifecycleService
             reconcileContractAddressAssignment(election, contractAddress);
             election.setContractAddress(contractAddress);
             return electionRepository.saveAndFlush(election);
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
-            throw new IllegalStateException("Failed to deploy election contract: " + rootCauseMessage(ex), ex);
+            if (ex instanceof BusinessConflictException conflictException)
+            {
+                throw conflictException;
+            }
+            throw new OperationFailedException("Failed to deploy election contract: " + rootCauseMessage(ex), ex);
         }
     }
 
@@ -78,17 +137,17 @@ public class ElectionLifecycleService
 
         if (election.getPhase() != ElectionPhase.REGISTRATION)
         {
-            throw new IllegalStateException("Only elections in REGISTRATION can be started");
+            throw new BusinessConflictException("Only elections in REGISTRATION can be started");
         }
 
         if (election.getStartTime() != null && Instant.now().isBefore(election.getStartTime()))
         {
-            throw new IllegalStateException("Election cannot be started before its configured startTime");
+            throw new BusinessConflictException("Election cannot be started before its configured startTime");
         }
 
         if (election.getEndTime() == null || !election.getEndTime().isAfter(Instant.now()))
         {
-            throw new IllegalStateException("Election voting window has already elapsed");
+            throw new BusinessConflictException("Election voting window has already elapsed");
         }
 
         requireActiveCandidates(election);
@@ -99,10 +158,9 @@ public class ElectionLifecycleService
             election.setPhase(ElectionPhase.VOTING);
             election.setStartTime(Instant.now());
             return electionRepository.save(election);
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
-            throw new IllegalStateException("Failed to start election on chain", ex);
+            throw new OperationFailedException("Failed to start election on chain", ex);
         }
     }
 
@@ -113,17 +171,17 @@ public class ElectionLifecycleService
 
         if (election.getPhase() != ElectionPhase.VOTING)
         {
-            throw new IllegalStateException("Only elections in VOTING can be ended");
+            throw new BusinessConflictException("Only elections in VOTING can be ended");
         }
 
         if (decryptionMaterial == null || decryptionMaterial.length == 0)
         {
-            throw new IllegalStateException("Election decryptionMaterial is required before ending the election");
+            throw new RequestValidationException("Election decryptionMaterial is required before ending the election");
         }
 
         if (election.getEndTime() != null && Instant.now().isBefore(election.getEndTime()))
         {
-            throw new IllegalStateException("Election cannot be ended before endTime");
+            throw new BusinessConflictException("Election cannot be ended before endTime");
         }
 
         try
@@ -132,10 +190,9 @@ public class ElectionLifecycleService
             election.setDecryptionMaterial(decryptionMaterial);
             election.setPhase(ElectionPhase.TALLY);
             return electionRepository.save(election);
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
-            throw new IllegalStateException("Failed to end election on chain", ex);
+            throw new OperationFailedException("Failed to end election on chain", ex);
         }
     }
 
@@ -145,43 +202,11 @@ public class ElectionLifecycleService
                 .orElseThrow(() -> new ResourceNotFoundException(Election.class.getSimpleName(), "UUID", publicId));
     }
 
-    private static boolean hasContractAddress(Election election)
-    {
-        return election.getContractAddress() != null && !election.getContractAddress().isBlank();
-    }
-
-    private static void ensureValidEncryptionKey(Election election)
-    {
-        byte[] encryptionKey = election.getEncryptionPublicKey();
-        if (encryptionKey == null || encryptionKey.length != 32)
-        {
-            throw new IllegalStateException("Election encryptionPublicKey must be exactly 32 bytes for deployment");
-        }
-    }
-
-    private static void requireDeployed(Election election)
-    {
-        if (!hasContractAddress(election))
-        {
-            throw new IllegalStateException("Election must be deployed before this action");
-        }
-    }
-
-    private static void alignExternalNullifier(Election election)
-    {
-        java.math.BigInteger canonical = ElectionService.deriveExternalNullifier(election.getPublicId());
-        if (election.getExternalNullifier() != null && !canonical.equals(election.getExternalNullifier()))
-        {
-            throw new IllegalStateException("Election externalNullifier does not match the canonical UUID-derived value");
-        }
-        election.setExternalNullifier(canonical);
-    }
-
     private void requireActiveCandidates(Election election)
     {
         if (!candidateRepository.existsByElectionPublicIdAndStatus(election.getPublicId(), CandidateStatus.ACTIVE))
         {
-            throw new IllegalStateException("Election must have at least one ACTIVE candidate before voting can start");
+            throw new BusinessConflictException("Election must have at least one ACTIVE candidate before voting can start");
         }
     }
 
@@ -203,7 +228,7 @@ public class ElectionLifecycleService
             return;
         }
 
-        throw new IllegalStateException(
+        throw new BusinessConflictException(
                 "Contract address " + contractAddress + " is already assigned to election " + conflictingElection.getPublicId()
         );
     }
@@ -225,26 +250,5 @@ public class ElectionLifecycleService
         election.setStartTime(null);
         election.setDecryptionMaterial(null);
         election.setPhase(ElectionPhase.REGISTRATION);
-    }
-
-    private static String rootCauseMessage(Exception ex)
-    {
-        Throwable current = ex;
-        while (current.getCause() != null)
-        {
-            current = current.getCause();
-        }
-
-        String message = current.getMessage();
-        if (message == null || message.isBlank())
-        {
-            return current.getClass().getSimpleName();
-        }
-        return message;
-    }
-
-    private static boolean isZeroAddress(String address)
-    {
-        return address == null || "0x0000000000000000000000000000000000000000".equalsIgnoreCase(address);
     }
 }

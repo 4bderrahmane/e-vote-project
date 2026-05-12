@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: voting-system
+    name: privote
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
@@ -14,11 +14,20 @@ spring:
 
   jpa:
     open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 
   security:
     oauth2:
       resourceserver:
         jwt:
+          # Localhost defaults for host-only web/local testing:
+          # issuer-uri: ${KC_ISSUER_URI:http://localhost:8080/realms/voting-realm}
+          # jwk-set-uri: ${KC_JWK_SET_URI:http://localhost:8080/realms/voting-realm/protocol/openid-connect/certs}
+          # LAN WiFi defaults for real devices on the same network:
+          # issuer-uri: ${KC_ISSUER_URI:http://192.168.11.198:8080/realms/voting-realm}
+          # jwk-set-uri: ${KC_JWK_SET_URI:http://192.168.11.198:8080/realms/voting-realm/protocol/openid-connect/certs}
           issuer-uri: ${KC_ISSUER_URI:http://localhost:8080/realms/voting-realm}
           jwk-set-uri: ${KC_JWK_SET_URI:http://localhost:8080/realms/voting-realm/protocol/openid-connect/certs}
 

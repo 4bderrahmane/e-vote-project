@@ -41,6 +41,54 @@ public class ElectionEventListener
     private final CursorStore cursorStore;
     private final ElectionEventHandler handler;
 
+    private static BigInteger min(BigInteger a, BigInteger b)
+    {
+        return a.compareTo(b) <= 0 ? a : b;
+    }
+
+    private static String normalizeAddress(String address)
+    {
+        if (address == null) return null;
+        String a = address.trim();
+        if (!a.startsWith("0x")) a = "0x" + a;
+        if (a.length() != 42) return null;
+        return a.toLowerCase();
+    }
+
+    private static String normalizeHash(String hash)
+    {
+        if (hash == null) return null;
+        String value = hash.trim();
+        if (value.isEmpty()) return null;
+        if (!value.startsWith("0x")) value = "0x" + value;
+        return value.toLowerCase();
+    }
+
+    private Cursor processLogs(Cursor cursor, List<Log> logs, BigInteger resumeBlock, BigInteger resumeLogIndex)
+    {
+        Cursor current = cursor;
+
+        for (Log logObj : logs)
+        {
+            BigInteger bn = logObj.getBlockNumber();
+            BigInteger li = logObj.getLogIndex();
+
+            ElectionDeployedEvent event = shouldSkip(bn, li, resumeBlock, resumeLogIndex, current) ? null : decodeElectionDeployed(logObj).orElse(null);
+
+            if (event == null)
+            {
+                continue;
+            }
+
+            handler.onElectionDeployed(event);
+
+            current = current.advanceToProcessedLog(bn, li, normalizeHash(logObj.getBlockHash()));
+            saveCursor(current);
+        }
+
+        return current;
+    }
+
     @Scheduled(fixedDelayString = "${web3j.listener.poll-interval-ms:5000}")
     public void pollElectionDeployed()
     {
@@ -51,7 +99,8 @@ public class ElectionEventListener
         try
         {
             safeTo = computeSafeToBlock();
-        } catch (IOException e)
+        }
+        catch (IOException e)
         {
             log.warn("Failed to read latest block number (RPC error): {}", e.getMessage(), e);
             return;
@@ -71,8 +120,6 @@ public class ElectionEventListener
 
         if (cursor.nextBlock().compareTo(safeTo) > 0) return;
 
-        // IMPORTANT: resume filter should be based on the INITIAL cursor only
-        // (skip logIndex < resumeLogIndex only on resumeBlock).
         final BigInteger resumeBlock = cursor.nextBlock();
         final BigInteger resumeLogIndex = cursor.nextLogIndex();
         boolean applyResumeFilter = true;
@@ -158,31 +205,6 @@ public class ElectionEventListener
         return logs;
     }
 
-    private Cursor processLogs(Cursor cursor, List<Log> logs, BigInteger resumeBlock, BigInteger resumeLogIndex)
-    {
-        Cursor current = cursor;
-
-        for (Log logObj : logs)
-        {
-            BigInteger bn = logObj.getBlockNumber();
-            BigInteger li = logObj.getLogIndex();
-
-            ElectionDeployedEvent event = shouldSkip(bn, li, resumeBlock, resumeLogIndex, current) ? null : decodeElectionDeployed(logObj).orElse(null);
-
-            if (event == null)
-            {
-                continue;
-            }
-
-            handler.onElectionDeployed(event);
-
-            current = current.advanceToProcessedLog(bn, li, normalizeHash(logObj.getBlockHash()));
-            saveCursor(current);
-        }
-
-        return current;
-    }
-
 
     private boolean shouldSkip(BigInteger blockNumber, BigInteger logIndex, BigInteger resumeBlock, BigInteger resumeLogIndex, Cursor currentCursor)
     {
@@ -195,7 +217,6 @@ public class ElectionEventListener
 
         return resumeBlock != null && resumeBlock.equals(blockNumber) && logIndex.compareTo(resumeLogIndex) < 0;
     }
-
 
     private Optional<ElectionDeployedEvent> decodeElectionDeployed(Log logObj)
     {
@@ -212,7 +233,6 @@ public class ElectionEventListener
 
         return Optional.of(new ElectionDeployedEvent(uuid, ev.externalNullifier, normalizeAddress(ev.coordinator), normalizeAddress(ev.election), ev.endTime, logObj.getTransactionHash(), logObj.getBlockNumber(), logObj.getLogIndex()));
     }
-
 
     private Cursor validateCursor(Cursor cursor) throws IOException
     {
@@ -249,28 +269,5 @@ public class ElectionEventListener
         }
         EthBlock.Block block = response.getBlock();
         return block == null ? null : normalizeHash(block.getHash());
-    }
-
-    private static BigInteger min(BigInteger a, BigInteger b)
-    {
-        return a.compareTo(b) <= 0 ? a : b;
-    }
-
-    private static String normalizeAddress(String address)
-    {
-        if (address == null) return null;
-        String a = address.trim();
-        if (!a.startsWith("0x")) a = "0x" + a;
-        if (a.length() != 42) return null;
-        return a.toLowerCase();
-    }
-
-    private static String normalizeHash(String hash)
-    {
-        if (hash == null) return null;
-        String value = hash.trim();
-        if (value.isEmpty()) return null;
-        if (!value.startsWith("0x")) value = "0x" + value;
-        return value.toLowerCase();
     }
 }
