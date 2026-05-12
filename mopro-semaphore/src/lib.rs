@@ -19,7 +19,7 @@ mod witness {
 pub struct SemaphoreProofResult {
 
     pub proof_json: String,
-    ///
+
     /// Groth16 proof points
     pub proof_points: Vec<String>,
     pub public_inputs: Vec<String>,
