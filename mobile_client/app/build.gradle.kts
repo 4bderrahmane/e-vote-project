@@ -38,6 +38,19 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    sourceSets {
+        getByName("main") {
+            kotlin.directories.add("../../mopro-semaphore/MoproAndroidBindings")
+            jniLibs.directories.add("../../mopro-semaphore/MoproAndroidBindings/jniLibs")
+        }
+    }
+
+    androidResources {
+        // The semaphore zkey is read by Mopro as a raw binary; keep it uncompressed
+        // so we can stream-copy it from assets without aapt-induced inflation overhead.
+        noCompress.add("zkey")
+    }
 }
 
 dependencies {
@@ -62,6 +75,18 @@ dependencies {
     // Architecture
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.livedata)
+
+    // Mopro UniFFI bindings use JNA to load the generated Rust library.
+    implementation("net.java.dev.jna:jna:${libs.versions.jna.get()}@aar")
+
+    // Keccak-256 for hashing ciphertext into the Semaphore message field.
+    implementation(libs.bouncycastle)
+
+    // Lombok (annotation processing for Java)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

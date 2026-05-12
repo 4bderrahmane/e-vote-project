@@ -62,13 +62,13 @@ public class ElectionRepository
                     return;
                 }
 
-                result.postValue(ElectionListResult.error("Elections request failed: HTTP " + response.code()));
+                result.postValue(ElectionListResult.error("Unable to load elections right now"));
             }
 
             @Override
             public void onFailure(Call<List<ElectionDto>> call, Throwable t)
             {
-                result.postValue(ElectionListResult.error("Elections request failed: " + t.getMessage()));
+                result.postValue(ElectionListResult.error("Unable to connect. Pull down to refresh."));
             }
         });
         return result;
@@ -88,13 +88,13 @@ public class ElectionRepository
                     return;
                 }
 
-                result.postValue(ElectionDetailResult.error("Election request failed: HTTP " + response.code()));
+                result.postValue(ElectionDetailResult.error("Unable to load election details"));
             }
 
             @Override
             public void onFailure(Call<ElectionDto> call, Throwable t)
             {
-                result.postValue(ElectionDetailResult.error("Election request failed: " + t.getMessage()));
+                result.postValue(ElectionDetailResult.error("Unable to connect. Pull down to refresh."));
             }
         });
         return result;
@@ -114,13 +114,13 @@ public class ElectionRepository
                     return;
                 }
 
-                result.postValue(ElectionDetailResult.error("Start election failed: HTTP " + response.code()));
+                result.postValue(ElectionDetailResult.error("Failed to start the election"));
             }
 
             @Override
             public void onFailure(Call<ElectionDto> call, Throwable t)
             {
-                result.postValue(ElectionDetailResult.error("Start election failed: " + t.getMessage()));
+                result.postValue(ElectionDetailResult.error("Unable to connect. Try again."));
             }
         });
         return result;

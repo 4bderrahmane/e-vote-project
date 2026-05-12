@@ -64,7 +64,7 @@ public class ResultsRepository
             {
                 if (!response.isSuccessful())
                 {
-                    result.postValue(ResultsListResult.error("Results request failed: HTTP " + response.code()));
+                    result.postValue(ResultsListResult.error("No results available right now"));
                     return;
                 }
 
@@ -81,7 +81,7 @@ public class ResultsRepository
             @Override
             public void onFailure(Call<List<ElectionDto>> call, Throwable t)
             {
-                result.postValue(ResultsListResult.error("Results request failed: " + t.getMessage()));
+                result.postValue(ResultsListResult.error("Unable to connect. Pull down to refresh."));
             }
         });
         return result;
@@ -103,9 +103,6 @@ public class ResultsRepository
                     if (response.isSuccessful() && response.body() != null)
                     {
                         loaded.add(response.body());
-                    } else if (response.code() != 404)
-                    {
-                        appendError(errors, "HTTP " + response.code() + " for " + safeTitle(election));
                     }
                     finishOne(remaining, loaded, errors, liveData);
                 }
@@ -113,7 +110,7 @@ public class ResultsRepository
                 @Override
                 public void onFailure(Call<ElectionResultDto> call, Throwable t)
                 {
-                    appendError(errors, safeTitle(election) + ": " + t.getMessage());
+                    appendError(errors, safeTitle(election));
                     finishOne(remaining, loaded, errors, liveData);
                 }
             });

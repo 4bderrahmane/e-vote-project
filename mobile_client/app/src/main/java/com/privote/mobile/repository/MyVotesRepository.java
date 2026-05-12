@@ -69,7 +69,7 @@ public class MyVotesRepository
             {
                 if (!response.isSuccessful())
                 {
-                    result.postValue(MyVotesResult.error("Votes request failed: HTTP " + response.code()));
+                    result.postValue(MyVotesResult.error("Unable to load your votes right now"));
                     return;
                 }
 
@@ -86,7 +86,7 @@ public class MyVotesRepository
             @Override
             public void onFailure(Call<List<ElectionDto>> call, Throwable t)
             {
-                result.postValue(MyVotesResult.error("Votes request failed: " + t.getMessage()));
+                result.postValue(MyVotesResult.error("Unable to connect. Pull down to refresh."));
             }
         });
         return result;
@@ -108,9 +108,6 @@ public class MyVotesRepository
                     if (response.isSuccessful() && response.body() != null)
                     {
                         loaded.add(new MyVoteItem(election, response.body()));
-                    } else if (response.code() != 404)
-                    {
-                        appendError(errors, "HTTP " + response.code() + " for " + safeTitle(election));
                     }
                     finishOne(remaining, loaded, errors, liveData);
                 }
@@ -118,7 +115,7 @@ public class MyVotesRepository
                 @Override
                 public void onFailure(Call<VoterRegistrationDto> call, Throwable t)
                 {
-                    appendError(errors, safeTitle(election) + ": " + t.getMessage());
+                    appendError(errors, safeTitle(election));
                     finishOne(remaining, loaded, errors, liveData);
                 }
             });

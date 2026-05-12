@@ -1,5 +1,6 @@
 package com.privote.mobile.ui.elections;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -7,7 +8,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -169,7 +173,9 @@ public class ElectionDetailFragment extends Fragment
         currentElection = election;
         binding.tvMessage.setVisibility(View.GONE);
         binding.tvTitle.setText(nonEmpty(election.getTitle(), "Untitled election"));
-        binding.tvPhase.setText(nonEmpty(election.getPhase(), "UNKNOWN"));
+        String phase = nonEmpty(election.getPhase(), "UNKNOWN");
+        binding.tvPhase.setText(phase);
+        applyPhaseChip(binding.tvPhase, phase);
         binding.tvDescription.setText(nonEmpty(election.getDescription(), "No description"));
         binding.tvDetails.setText(
                 "Public ID: " + value(election.getPublicId() == null ? null : election.getPublicId().toString()) + "\n"
@@ -633,6 +639,26 @@ public class ElectionDetailFragment extends Fragment
             status += " / " + commitment;
         }
         return status.replace('_', ' ');
+    }
+
+    private static void applyPhaseChip(TextView chip, String phase)
+    {
+        Context ctx = chip.getContext();
+        if ("VOTING".equalsIgnoreCase(phase))
+        {
+            chip.setBackgroundResource(com.privote.mobile.R.drawable.chip_success_bg);
+            chip.setTextColor(ContextCompat.getColor(ctx, com.privote.mobile.R.color.phase_vote_text));
+        }
+        else if ("TALLY".equalsIgnoreCase(phase))
+        {
+            chip.setBackgroundResource(com.privote.mobile.R.drawable.chip_warning_bg);
+            chip.setTextColor(ContextCompat.getColor(ctx, com.privote.mobile.R.color.phase_tally_text));
+        }
+        else
+        {
+            chip.setBackgroundResource(com.privote.mobile.R.drawable.chip_neutral_bg);
+            chip.setTextColor(ContextCompat.getColor(ctx, com.privote.mobile.R.color.phase_reg_text));
+        }
     }
 
     private static String value(String value)

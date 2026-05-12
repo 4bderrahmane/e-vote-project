@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "privote_mobile_client"
+rootProject.name = "privote"
 include(":app")
  

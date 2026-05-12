@@ -1,11 +1,13 @@
 package com.privote.mobile.ui.elections;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.privote.mobile.R;
@@ -79,16 +81,38 @@ public class ElectionAdapter extends RecyclerView.Adapter<ElectionAdapter.ViewHo
         {
             tvTitle.setText(nonEmpty(election.getTitle(), "Untitled election"));
             tvDescription.setText(nonEmpty(election.getDescription(), "No description"));
-            tvPhase.setText(nonEmpty(election.getPhase(), "UNKNOWN"));
+            String phase = nonEmpty(election.getPhase(), "UNKNOWN");
+            tvPhase.setText(phase);
+            applyPhaseChip(tvPhase, phase);
             tvDates.setText(formatDates(election));
             itemView.setOnClickListener(v -> listener.onElectionClick(election));
+        }
+
+        private static void applyPhaseChip(TextView chip, String phase)
+        {
+            Context ctx = chip.getContext();
+            if ("VOTING".equalsIgnoreCase(phase))
+            {
+                chip.setBackgroundResource(R.drawable.chip_success_bg);
+                chip.setTextColor(ContextCompat.getColor(ctx, R.color.phase_vote_text));
+            }
+            else if ("TALLY".equalsIgnoreCase(phase))
+            {
+                chip.setBackgroundResource(R.drawable.chip_warning_bg);
+                chip.setTextColor(ContextCompat.getColor(ctx, R.color.phase_tally_text));
+            }
+            else
+            {
+                chip.setBackgroundResource(R.drawable.chip_neutral_bg);
+                chip.setTextColor(ContextCompat.getColor(ctx, R.color.phase_reg_text));
+            }
         }
 
         private static String formatDates(ElectionDto election)
         {
             String start = DateFormatUtils.dateTime(election.getStartTime());
             String end = DateFormatUtils.dateTime(election.getEndTime());
-            return start + " - " + end;
+            return start + " – " + end;
         }
 
         private static String nonEmpty(String value, String fallback)

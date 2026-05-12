@@ -63,13 +63,13 @@ public class PartyRepository
                     result.postValue(PartyListResult.success(response.body()));
                     return;
                 }
-                result.postValue(PartyListResult.error("Parties request failed: HTTP " + response.code()));
+                result.postValue(PartyListResult.error("Unable to load parties right now"));
             }
 
             @Override
             public void onFailure(Call<List<PartyDto>> call, Throwable t)
             {
-                result.postValue(PartyListResult.error("Parties request failed: " + t.getMessage()));
+                result.postValue(PartyListResult.error("Unable to connect. Pull down to refresh."));
             }
         });
         return result;

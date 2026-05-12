@@ -57,7 +57,6 @@ public class ElectionListFragment extends Fragment
             if (!result.isSuccess())
             {
                 showMessage(result.errorMessage);
-                Toast.makeText(requireContext(), result.errorMessage, Toast.LENGTH_SHORT).show();
                 return;
             }
 
