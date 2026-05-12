@@ -8,10 +8,16 @@ import {
     createVaultAndElectionIdentity,
     deriveElectionIdentityFromVault,
     electionKeyFromExternalNullifier,
+    needsVaultUpgrade,
+    upgradeIdentityVault,
 } from "@/semaphore/identity";
 import {getSemaphoreSnarkArtifacts, SEMAPHORE_ARTIFACT_DEPTH} from "@/semaphore/artifacts";
 import {createElectionVoteProofViaFastify} from "@/semaphore/proof";
-import {hasIdentityVault, loadIdentityVault, saveIdentityVault} from "@/semaphore/identityVaultStorage";
+import {
+    hasIdentityVault,
+    loadIdentityVault,
+    saveIdentityVault,
+} from "@/semaphore/identityVaultStorage";
 import {useSuccessToast} from "../hooks/useSuccessToast";
 import {
     candidateManagement,
@@ -106,9 +112,13 @@ function formatWorkflowStatus(status: string) {
     return formatStatusLabel(status);
 }
 
-function safeHasIdentityVault() {
+function safeHasIdentityVault(userId: string | null) {
+    if (!userId) {
+        return false;
+    }
+
     try {
-        return hasIdentityVault();
+        return hasIdentityVault(userId);
     } catch {
         return false;
     }
@@ -119,7 +129,7 @@ function resolveProofServiceBaseUrl() {
     if (configured && configured.trim().length > 0) {
         return configured.replace(/\/+$/, "");
     }
-    return "http://127.0.0.1:4010";
+    return "http://localhost:4010";
 }
 
 export default function ElectionDetails() { // NOSONAR
@@ -128,6 +138,7 @@ export default function ElectionDetails() { // NOSONAR
     const auth = useAuth();
     const {showSuccessToast} = useSuccessToast();
     const isAdmin = auth.status === "authenticated" && isAdminUser(auth.user);
+    const authenticatedUserId = auth.status === "authenticated" ? auth.user.id : null;
     const showErrorToast = useCallback(
         (message: string) => {
             showSuccessToast(message, 5000, "error");
@@ -149,7 +160,11 @@ export default function ElectionDetails() { // NOSONAR
     const [identityPasswordConfirm, setIdentityPasswordConfirm] = useState("");
     const [workflowBusy, setWorkflowBusy] = useState<"register" | "vote" | null>(null);
     const [selectedCandidatePublicId, setSelectedCandidatePublicId] = useState("");
-    const [identityVaultPresent, setIdentityVaultPresent] = useState(() => safeHasIdentityVault());
+    const [identityVaultPresent, setIdentityVaultPresent] = useState(() => safeHasIdentityVault(authenticatedUserId));
+
+    useEffect(() => {
+        setIdentityVaultPresent(safeHasIdentityVault(authenticatedUserId));
+    }, [authenticatedUserId]);
 
     useEffect(() => {
         let cancelled = false;
@@ -348,6 +363,15 @@ export default function ElectionDetails() { // NOSONAR
     );
 
     async function deriveElectionIdentity() {
+        if (!authenticatedUserId) {
+            throw new Error(
+                t("vote.errors.authenticationRequired", {
+                    defaultValue: "You must be signed in to use your voter identity.",
+                })
+            );
+        }
+        const userId = authenticatedUserId;
+
         if (!election?.externalNullifier) {
             throw new Error(
                 t("vote.errors.externalNullifierMissing", {
@@ -365,9 +389,27 @@ export default function ElectionDetails() { // NOSONAR
         }
 
         const electionKey = electionKeyFromExternalNullifier(election.externalNullifier);
-        const storedVault = loadIdentityVault();
+        const storedVault = loadIdentityVault(userId);
+
+        async function persistUnlockedVault(vault: NonNullable<typeof storedVault>) {
+            const shouldUpgrade = needsVaultUpgrade(vault);
+            const vaultToSave = shouldUpgrade
+                ? await upgradeIdentityVault(identityPassword, vault)
+                : vault;
+            saveIdentityVault(userId, vaultToSave);
+            setIdentityVaultPresent(true);
+        }
 
         if (!storedVault) {
+            if (registration?.identityCommitment) {
+                throw new Error(
+                    t("vote.errors.vaultMissing", {
+                        defaultValue:
+                            "No local voter identity vault was found for this account. Use the browser where you registered this identity.",
+                    })
+                );
+            }
+
             if (!identityPasswordConfirm) {
                 throw new Error(
                     t("vote.errors.passwordConfirmRequired", {
@@ -385,13 +427,30 @@ export default function ElectionDetails() { // NOSONAR
             }
 
             const created = await createVaultAndElectionIdentity(identityPassword, electionKey);
-            saveIdentityVault(created.vault);
+            saveIdentityVault(userId, created.vault);
             setIdentityVaultPresent(true);
             return {identity: created.identity, createdVault: true};
         }
 
+        const identity = await deriveElectionIdentityFromVault(identityPassword, storedVault, electionKey);
+        if (
+            registration?.identityCommitment &&
+            identity.commitment.toString() !== registration.identityCommitment
+        ) {
+            throw new Error(
+                t("vote.errors.identityMismatch", {
+                    defaultValue:
+                        "The unlocked local voter identity does not match the identity registered for this election.",
+                })
+            );
+        }
+
+        if (needsVaultUpgrade(storedVault)) {
+            await persistUnlockedVault(storedVault);
+        }
+
         return {
-            identity: await deriveElectionIdentityFromVault(identityPassword, storedVault, electionKey),
+            identity,
             createdVault: false,
         };
     }
