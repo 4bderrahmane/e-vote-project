@@ -13,3 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Eclipse / Buildship
+.project
+.classpath
+.settings/
+
