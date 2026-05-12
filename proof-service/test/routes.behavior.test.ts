@@ -8,7 +8,7 @@ const UNKNOWN_ELECTION = "0x0000000000000000000000000000000000000002" as const
 
 function buildKnownState() {
     const state = new ElectionGroupState(KNOWN_ELECTION)
-    state.init(1n, 20)
+    state.init(1n)
     state.addMember(111n, 0)
     state.addMember(222n, 1)
     return state
@@ -124,7 +124,7 @@ test("happy path returns a proof payload consumable by clients", async () => {
 
         const body = res.json()
         assert.equal(body.groupId, "1")
-        assert.equal(body.expectedDepth, 20)
+        assert.equal(body.expectedDepth, 1)
         assert.equal(body.leaf, "222")
         assert.equal(typeof body.index, "number")
         assert.equal(body.root, state.getRoot().toString())

@@ -15,7 +15,7 @@ const ELECTION = "0x0000000000000000000000000000000000000001" as const
 
 function newState() {
     const state = new ElectionGroupState(ELECTION)
-    state.init(1n, 20)
+    state.init(1n)
     return state
 }
 

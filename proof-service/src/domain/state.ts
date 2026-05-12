@@ -29,7 +29,6 @@ export function merkleProofFromJSON(mpj: MerkleProofJSON): MerkleProof<bigint> {
 export class ElectionGroupState {
     public readonly election: Address
     public groupId!: bigint
-    public expectedDepth!: number
     private group: Group = new Group()
     private readonly commitmentToIndex = new Map<string, number>()
 
@@ -37,11 +36,17 @@ export class ElectionGroupState {
         this.election = election
     }
 
-    init(groupId: bigint, expectedDepth: number) {
+    init(groupId: bigint) {
         this.groupId = groupId
-        this.expectedDepth = expectedDepth
         this.group = new Group()
         this.commitmentToIndex.clear()
+    }
+
+    // LeanIMT depth is dynamic: it grows as members are added.
+    // Always read live from the in-memory tree so the value stays consistent
+    // with the proof returned by getMerkleProof().
+    public get expectedDepth(): number {
+        return this.group.depth
     }
 
     getRoot(): bigint {

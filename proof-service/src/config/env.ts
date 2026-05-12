@@ -64,7 +64,35 @@ const schema = z.object({
     LOG_BATCH_SIZE: z.coerce.number().default(50_000)
 })
 
-export const env = schema.parse(process.env)
+export const env = schema.parse(expandEnv(process.env))
+
+function expandEnv(source: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+    const expanded: NodeJS.ProcessEnv = {}
+
+    for (const [key, value] of Object.entries(source)) {
+        expanded[key] = expandValue(value, source, new Set([key]))
+    }
+
+    return expanded
+}
+
+function expandValue(
+    value: string | undefined,
+    source: NodeJS.ProcessEnv,
+    seen: Set<string>
+): string | undefined {
+    if (value === undefined) return value
+
+    return value.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)}/g, (_, name: string) => {
+        if (seen.has(name)) return ""
+
+        seen.add(name)
+        const expanded = expandValue(source[name], source, seen) ?? ""
+        seen.delete(name)
+
+        return expanded
+    })
+}
 
 function normalizeAddress(raw: string): `0x${string}` {
     return getAddress(raw).toLowerCase() as `0x${string}`

@@ -80,7 +80,7 @@ function assertSafeIndex(index: bigint) {
  */
 async function rebuildStateFromDb(state: ElectionGroupState) {
     const snapshot = await bootstrapElectionSnapshot(state.election)
-    state.init(snapshot.state.groupId, snapshot.state.expectedDepth)
+    state.init(snapshot.state.groupId)
     state.rebuildFromMembers(snapshot.members)
 }
 

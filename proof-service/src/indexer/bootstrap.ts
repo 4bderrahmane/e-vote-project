@@ -10,7 +10,6 @@ export type BootstrappedElection = {
 export type BootstrapDeps = {
     getElectionMeta: (electionAddress: `0x${string}`) => Promise<{
         groupId: bigint
-        depth: number
     }>
     loadMembers: typeof loadMembers
 }
@@ -19,8 +18,7 @@ const defaultBootstrapDeps: BootstrapDeps = {
     getElectionMeta: async (electionAddress) => {
         const c = electionContract(electionAddress)
         const groupId = await c.read.externalNullifier()
-        const depth = Number(await c.read.getMerkleTreeDepth([groupId]))
-        return { groupId, depth }
+        return { groupId }
     },
     loadMembers
 }
@@ -34,10 +32,10 @@ async function bootstrapElectionInternal(
         ...overrides
     }
 
-    const { groupId, depth } = await deps.getElectionMeta(electionAddress)
+    const { groupId } = await deps.getElectionMeta(electionAddress)
 
     const state = new ElectionGroupStateImpl(electionAddress)
-    state.init(groupId, depth)
+    state.init(groupId)
 
     const rows = await deps.loadMembers(electionAddress)
 
