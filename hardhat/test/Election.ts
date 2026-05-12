@@ -15,6 +15,14 @@ const [POSEIDON_T3_SOURCE, POSEIDON_T3_NAME] = POSEIDON_T3.split(":");
 
 let cachedPoseidonArtifact: { abi: InterfaceAbi; bytecode: string } | undefined;
 
+function hashBytesToField(bytes: BytesLike): bigint {
+  return BigInt(ethers.keccak256(bytes)) >> 8n;
+}
+
+function hashFieldToSemaphoreSignal(value: bigint): bigint {
+  return BigInt(ethers.keccak256(ethers.toBeHex(value, 32))) >> 8n;
+}
+
 describe("Election", function () {
   async function loadPoseidonArtifact() {
     if (cachedPoseidonArtifact) {
@@ -229,6 +237,49 @@ describe("Election", function () {
 
     expect(await election.isNullifierUsed(nullifier)).to.equal(true);
     expect(await election.ballotCount()).to.equal(1n);
+  });
+
+  it("passes Semaphore-hashed public signals to the verifier", async function () {
+    const { election, verifier, externalNullifier } = await deployElection();
+
+    const ciphertext = ethers.toUtf8Bytes("vote");
+    const ciphertextHex = ethers.hexlify(ciphertext);
+    const nullifier = 16n;
+    const proof = Array(8).fill(0n);
+
+    await election.startElection();
+
+    const merkleTreeRoot = await election.getMerkleTreeRoot(externalNullifier);
+    const message = hashBytesToField(ciphertextHex);
+
+    const oldDirectPubSignals = [
+      merkleTreeRoot,
+      nullifier,
+      message,
+      externalNullifier,
+    ];
+
+    await verifier.setExpectedPubSignals(oldDirectPubSignals, true);
+
+    await expect(
+      election.castVote(ciphertext, nullifier, proof)
+    ).to.be.revertedWithCustomError(
+      election,
+      "Election__InvalidProof"
+    );
+
+    const semaphorePubSignals = [
+      merkleTreeRoot,
+      nullifier,
+      hashFieldToSemaphoreSignal(message),
+      hashFieldToSemaphoreSignal(externalNullifier),
+    ];
+
+    await verifier.setExpectedPubSignals(semaphorePubSignals, true);
+
+    await election.castVote(ciphertext, nullifier, proof);
+
+    expect(await election.isNullifierUsed(nullifier)).to.equal(true);
   });
 
   it("rejects reused nullifiers", async function () {

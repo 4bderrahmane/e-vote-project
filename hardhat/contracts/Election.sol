@@ -102,31 +102,35 @@ contract Election is IElection, SemaphoreGroups {
 
         uint256 merkleTreeRoot = getMerkleTreeRoot(externalNullifier);
 
-        // IMPORTANT:
-        // Your current Circom wrapper is:
-        //   component main {public [message, scope]} = Semaphore(20);
+        // The client exposes unhashed `message` and `scope` in the proof DTO, but
+        // @semaphore-protocol/proof feeds hash(message) and hash(scope) to the
+        // circuit, where hash(x) = uint256(keccak256(bytes32(x))) >> 8.
         //
-        // And your current circuit outputs:
-        //   merkleRoot, nullifier
+        // The client first binds the ballot by setting:
+        //   message = uint256(keccak256(ciphertext)) >> 8
         //
-        // Therefore the generated Groth16 verifier expects public signals in this exact order:
-        //   [merkleRoot, nullifier, message, scope]
+        // Keep the old direct signal mapping here as a reference. It is wrong for
+        // @semaphore-protocol/proof v4 because it skips the package-level hash():
         //
-        // To keep the ballot private, we do NOT use the plaintext vote as "message".
-        // Instead, we bind the proof to the encrypted ballot by using:
-        //   message = hash(ciphertext)
-        //
-        // That way:
-        // - the ciphertext is public
-        // - the plaintext vote stays hidden until decryption/tally
-        // - the proof cannot be detached from a different ciphertext
+        //   [merkleTreeRoot, nullifier, message, externalNullifier]
         uint256 message = _hashBytesToField(ciphertext);
+        uint256 proofMessage = _hashFieldToSemaphoreSignal(message);
+        uint256 proofScope = _hashFieldToSemaphoreSignal(externalNullifier);
+
+        // Old verifier call, kept commented for reference:
+        //
+        // bool verified = _verifier.verifyProof(
+        //     [proof[0], proof[1]],
+        //     [[proof[2], proof[3]], [proof[4], proof[5]]],
+        //     [proof[6], proof[7]],
+        //     [merkleTreeRoot, nullifier, message, externalNullifier]
+        // );
 
         bool verified = _verifier.verifyProof(
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
-            [merkleTreeRoot, nullifier, message, externalNullifier]
+            [merkleTreeRoot, nullifier, proofMessage, proofScope]
         );
 
         if (!verified) revert Election__InvalidProof();
@@ -170,5 +174,10 @@ contract Election is IElection, SemaphoreGroups {
     /// This keeps the value safely inside the BN254 field expected by Groth16 public signals.
     function _hashBytesToField(bytes calldata data) internal pure returns (uint256) {
         return uint256(keccak256(data)) >> 8;
+    }
+
+    /// @dev Matches @semaphore-protocol/proof hash.ts: keccak256(toBeHex(value, 32)) >> 8.
+    function _hashFieldToSemaphoreSignal(uint256 value) internal pure returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(value))) >> 8;
     }
 }

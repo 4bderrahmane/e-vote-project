@@ -112,6 +112,40 @@ contract ElectionTest is Test {
         assertEq(election.ballotCount(), 1);
     }
 
+    function test_PassesSemaphoreHashedPublicSignalsToVerifier() public {
+        bytes memory ciphertext = bytes("vote");
+        uint256 nullifier = 16;
+        uint256[8] memory proof;
+
+        _startElection();
+
+        uint256 merkleTreeRoot = election.getMerkleTreeRoot(externalNullifier);
+        uint256 message = _hashBytesToField(ciphertext);
+
+        uint256[4] memory oldDirectPubSignals;
+        oldDirectPubSignals[0] = merkleTreeRoot;
+        oldDirectPubSignals[1] = nullifier;
+        oldDirectPubSignals[2] = message;
+        oldDirectPubSignals[3] = externalNullifier;
+
+        verifier.setExpectedPubSignals(oldDirectPubSignals, true);
+
+        vm.expectRevert(IElection.Election__InvalidProof.selector);
+        election.castVote(ciphertext, nullifier, proof);
+
+        uint256[4] memory semaphorePubSignals;
+        semaphorePubSignals[0] = merkleTreeRoot;
+        semaphorePubSignals[1] = nullifier;
+        semaphorePubSignals[2] = _hashFieldToSemaphoreSignal(message);
+        semaphorePubSignals[3] = _hashFieldToSemaphoreSignal(externalNullifier);
+
+        verifier.setExpectedPubSignals(semaphorePubSignals, true);
+
+        election.castVote(ciphertext, nullifier, proof);
+
+        assertTrue(election.isNullifierUsed(nullifier));
+    }
+
     function test_RejectsReusedNullifiers() public {
         bytes memory ciphertext = bytes("vote");
         uint256 nullifier = 10;
@@ -201,5 +235,13 @@ contract ElectionTest is Test {
     function _startElection() private {
         vm.prank(coordinator);
         election.startElection();
+    }
+
+    function _hashBytesToField(bytes memory data) private pure returns (uint256) {
+        return uint256(keccak256(data)) >> 8;
+    }
+
+    function _hashFieldToSemaphoreSignal(uint256 value) private pure returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(value))) >> 8;
     }
 }

@@ -18,3 +18,5 @@ docs/
 .env
 .env.*
 !.env.example
+
+anvil-state.json
