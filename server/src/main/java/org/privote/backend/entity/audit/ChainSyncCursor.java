@@ -1,4 +1,4 @@
-package org.privote.backend.entity;
+package org.privote.backend.entity.audit;
 
 import jakarta.persistence.*;
 import lombok.*;

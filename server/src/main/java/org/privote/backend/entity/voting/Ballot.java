@@ -1,4 +1,7 @@
-package org.privote.backend.entity;
+package org.privote.backend.entity.voting;
+
+import org.privote.backend.entity.election.Candidate;
+import org.privote.backend.entity.election.Election;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -39,8 +42,16 @@ public class Ballot
     @JoinColumn(name = "election_id", nullable = false)
     private Election election;
 
+    // This might also be useful, but we should add it as well in Election Entity.
+    @Column(name = "num_candidates", nullable = false)
+    private int numCandidates;  // N, for read-side validation
+
     @Column(name = "ciphertext", nullable = false, columnDefinition = "bytea")
     private byte[] ciphertext;
+
+    // serialized: c1_0||c2_0||c1_1||c2_1||...||c1_{N-1}||c2_{N-1}
+    @Column(name = "ciphertext_vector", nullable = false, columnDefinition = "bytea")
+    private byte[] ciphertextVector;
 
     // keccak256(ciphertext), typically stored as a 0x-prefixed hex string.
     @Column(name = "ciphertext_hash", nullable = false, length = 66)

@@ -1,4 +1,7 @@
-package org.privote.backend.entity;
+package org.privote.backend.entity.identity;
+
+import org.privote.backend.entity.election.Candidate;
+import org.privote.backend.entity.voting.VoterCommitment;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

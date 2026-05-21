@@ -1,4 +1,7 @@
-package org.privote.backend.entity;
+package org.privote.backend.entity.voting;
+
+import org.privote.backend.entity.election.Election;
+import org.privote.backend.entity.identity.Citizen;
 
 import jakarta.persistence.*;
 import lombok.Getter;
