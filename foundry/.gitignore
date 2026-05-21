@@ -2,6 +2,9 @@
 cache/
 out/
 
+# Foundry-installed dependencies (forge install)
+lib/
+
 # Commonly ignored directories
 .logs/
 .ignore/
