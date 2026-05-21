@@ -10,12 +10,40 @@ ported from the previous Hardhat setup to Foundry.
 - `contracts/test/` — test-only helpers (`MockGroth16Verifier`, `PoseidonT3Import`)
 - `test/` — Foundry tests (`*.t.sol`)
 - `circuits/` — Circom sources for the ZK circuits (kept verbatim from the Hardhat repo)
-- `lib/` — git-submodule and library dependencies (forge-std, semaphore, zk-kit, poseidon-solidity)
+- `lib/` — external Solidity dependencies (forge-std, semaphore, zk-kit, poseidon-solidity). Gitignored; contributors install them locally (see [Install dependencies](#install-dependencies)).
 
 ### Prerequisites
 
 - [Foundry](https://book.getfoundry.sh/getting-started/installation) (`forge`, `cast`, `anvil`)
-- Submodules installed: `git submodule update --init --recursive`
+- Node.js + `npm` (only for the one-time dependency install below)
+
+### Install dependencies
+
+`lib/` is not committed. The Solidity deps use an npm-style layout (matching how the
+remappings in `remappings.txt` resolve), so the install is a mix of `npm pack` (for the
+three npm-published libs) and `forge install` (for `forge-std`).
+
+Run once from `foundry/`:
+
+```shell
+# 1. forge-std (fetched via forge)
+forge install foundry-rs/forge-std@v1.16.1 --no-commit
+
+# 2. Semaphore, zk-kit lean-imt, poseidon-solidity (fetched via npm)
+mkdir -p lib/@semaphore-protocol lib/@zk-kit
+( cd lib/@semaphore-protocol && \
+    tar -xzf "$(npm pack @semaphore-protocol/contracts@4.14.0 | tail -1)" && \
+    mv package contracts && rm -f *.tgz )
+( cd lib/@zk-kit && \
+    tar -xzf "$(npm pack @zk-kit/lean-imt.sol@2.0.1 | tail -1)" && \
+    mv package lean-imt.sol && rm -f *.tgz )
+( cd lib && \
+    tar -xzf "$(npm pack poseidon-solidity@0.0.5 | tail -1)" && \
+    mv package poseidon-solidity && rm -f *.tgz )
+```
+
+Pinned versions match what the project was developed against. Bumping any of these
+may require updating `remappings.txt` if the package's internal layout changes.
 
 ### Build
 
