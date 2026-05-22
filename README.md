@@ -315,7 +315,7 @@ pnpm build
 - Voter identities are derived per election, reducing cross-election linkability.
 - The local identity vault is scoped per authenticated user and uses Argon2id key derivation.
 - Ballots are encrypted before submission.
-- Proof generation is tied to the encrypted ballot payload rather than the plaintext choice.
+- The proof is bound to the encrypted ballot via a signal hash, so the ciphertext can't be tampered with or replayed, while the plaintext choice is never an input to the proof.
 - Nullifiers prevent duplicate voting without revealing voter identity.
 - The backend stores verifiable receipts such as transaction hashes and ciphertext hashes.
 - Mobile proofs are generated on-device, so the user's identity secret never leaves the phone.
