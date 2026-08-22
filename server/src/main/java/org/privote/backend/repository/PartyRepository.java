@@ -1,6 +1,6 @@
 package org.privote.backend.repository;
 
-import org.privote.backend.entity.Party;
+import org.privote.backend.entity.election.Party;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

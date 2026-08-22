@@ -1,6 +1,6 @@
 package org.privote.backend.repository;
 
-import org.privote.backend.entity.Candidate;
+import org.privote.backend.entity.election.Candidate;
 import org.privote.backend.entity.enums.CandidateStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

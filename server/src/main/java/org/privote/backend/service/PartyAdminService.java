@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.privote.backend.audit.AdminAuditRunner;
 import org.privote.backend.dto.party.PartyCreateDto;
 import org.privote.backend.dto.party.PartyPatchDto;
-import org.privote.backend.entity.Party;
+import org.privote.backend.entity.election.Party;
 import org.privote.backend.entity.enums.SystemLogAction;
 import org.springframework.stereotype.Service;
 

@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.privote.backend.dto.party.PartyCreateDto;
 import org.privote.backend.dto.party.PartyPatchDto;
-import org.privote.backend.entity.Party;
+import org.privote.backend.entity.election.Party;
 import org.privote.backend.security.AuthenticatedActorResolver;
 import org.privote.backend.service.PartyAdminService;
 import org.privote.backend.service.PartyService;

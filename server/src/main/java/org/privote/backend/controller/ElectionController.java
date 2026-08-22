@@ -9,7 +9,7 @@ import org.privote.backend.dto.election.ElectionCreateDto;
 import org.privote.backend.dto.election.ElectionEndRequestDto;
 import org.privote.backend.dto.election.ElectionPatchDto;
 import org.privote.backend.dto.election.ElectionResponseDto;
-import org.privote.backend.entity.Election;
+import org.privote.backend.entity.election.Election;
 import org.privote.backend.security.AuthenticatedActorResolver;
 import org.privote.backend.service.CandidateAdminService;
 import org.privote.backend.service.CandidateService;

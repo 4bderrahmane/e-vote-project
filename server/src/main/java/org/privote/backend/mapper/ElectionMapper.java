@@ -2,7 +2,7 @@ package org.privote.backend.mapper;
 
 import org.privote.backend.dto.election.ElectionCreateDto;
 import org.privote.backend.dto.election.ElectionPatchDto;
-import org.privote.backend.entity.Election;
+import org.privote.backend.entity.election.Election;
 
 public interface ElectionMapper
 {

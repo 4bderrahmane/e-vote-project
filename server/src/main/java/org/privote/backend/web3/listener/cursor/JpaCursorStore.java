@@ -1,7 +1,7 @@
 package org.privote.backend.web3.listener.cursor;
 
 import lombok.RequiredArgsConstructor;
-import org.privote.backend.entity.ChainSyncCursor;
+import org.privote.backend.entity.audit.ChainSyncCursor;
 import org.privote.backend.repository.Web3EventCursorRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

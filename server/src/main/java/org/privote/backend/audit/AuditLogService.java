@@ -3,7 +3,7 @@ package org.privote.backend.audit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
-import org.privote.backend.entity.SystemLog;
+import org.privote.backend.entity.audit.SystemLog;
 import org.privote.backend.entity.enums.SystemLogAction;
 import org.privote.backend.entity.enums.SystemLogOutcome;
 import org.privote.backend.repository.CitizenRepository;

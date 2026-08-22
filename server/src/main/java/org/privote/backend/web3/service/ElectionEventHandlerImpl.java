@@ -2,9 +2,9 @@ package org.privote.backend.web3.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.privote.backend.entity.CitizenElectionParticipation;
-import org.privote.backend.entity.Election;
-import org.privote.backend.entity.VoterCommitment;
+import org.privote.backend.entity.identity.CitizenElectionParticipation;
+import org.privote.backend.entity.election.Election;
+import org.privote.backend.entity.voting.VoterCommitment;
 import org.privote.backend.entity.enums.CommitmentStatus;
 import org.privote.backend.entity.enums.ElectionPhase;
 import org.privote.backend.entity.enums.ParticipationStatus;

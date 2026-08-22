@@ -2,7 +2,7 @@ package org.privote.backend.mapper;
 
 import org.privote.backend.dto.party.PartyCreateDto;
 import org.privote.backend.dto.party.PartyPatchDto;
-import org.privote.backend.entity.Party;
+import org.privote.backend.entity.election.Party;
 import org.springframework.stereotype.Component;
 
 @Component

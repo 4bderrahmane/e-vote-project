@@ -5,7 +5,7 @@ import org.privote.backend.audit.AdminAuditRunner;
 import org.privote.backend.dto.election.ElectionCreateDto;
 import org.privote.backend.dto.election.ElectionEndRequestDto;
 import org.privote.backend.dto.election.ElectionPatchDto;
-import org.privote.backend.entity.Election;
+import org.privote.backend.entity.election.Election;
 import org.privote.backend.entity.enums.SystemLogAction;
 import org.privote.backend.exception.RequestValidationException;
 import org.springframework.stereotype.Service;

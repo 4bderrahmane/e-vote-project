@@ -1,7 +1,7 @@
 package org.privote.backend.dto.candidate;
 
-import org.privote.backend.entity.Candidate;
-import org.privote.backend.entity.Party;
+import org.privote.backend.entity.election.Candidate;
+import org.privote.backend.entity.election.Party;
 import org.privote.backend.entity.enums.CandidateStatus;
 
 import java.util.Objects;

@@ -1,7 +1,7 @@
 package org.privote.backend.mapper;
 
 import org.privote.backend.dto.ballot.BallotCreateDto;
-import org.privote.backend.entity.Ballot;
+import org.privote.backend.entity.voting.Ballot;
 import org.springframework.stereotype.Component;
 
 @Component

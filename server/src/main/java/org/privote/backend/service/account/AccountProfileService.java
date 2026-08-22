@@ -3,7 +3,7 @@ package org.privote.backend.service.account;
 import lombok.RequiredArgsConstructor;
 import org.privote.backend.dto.citizen.CitizenResponseDto;
 import org.privote.backend.dto.citizen.CitizenSelfUpdateRequest;
-import org.privote.backend.entity.Citizen;
+import org.privote.backend.entity.identity.Citizen;
 import org.privote.backend.infrastructure.iam.KeycloakAdminGateway;
 import org.privote.backend.service.CitizenService;
 import org.springframework.stereotype.Service;

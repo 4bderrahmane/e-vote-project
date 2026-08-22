@@ -1,7 +1,7 @@
 package org.privote.backend.dto.citizen;
 
 import lombok.Data;
-import org.privote.backend.entity.Citizen;
+import org.privote.backend.entity.identity.Citizen;
 
 import java.time.LocalDate;
 import java.util.UUID;

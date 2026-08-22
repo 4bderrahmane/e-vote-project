@@ -1,7 +1,7 @@
 package org.privote.backend.repository;
 
 import org.jspecify.annotations.NonNull;
-import org.privote.backend.entity.Election;
+import org.privote.backend.entity.election.Election;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

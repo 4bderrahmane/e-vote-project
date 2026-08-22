@@ -1,6 +1,6 @@
 package org.privote.backend.dto.election;
 
-import org.privote.backend.entity.Election;
+import org.privote.backend.entity.election.Election;
 import org.privote.backend.entity.enums.ElectionPhase;
 
 import java.time.Instant;

@@ -1,6 +1,6 @@
 package org.privote.backend.repository;
 
-import org.privote.backend.entity.VoterCommitment;
+import org.privote.backend.entity.voting.VoterCommitment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

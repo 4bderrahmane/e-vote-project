@@ -1,6 +1,6 @@
 package org.privote.backend.dto.ballot;
 
-import org.privote.backend.entity.Ballot;
+import org.privote.backend.entity.voting.Ballot;
 
 import java.time.Instant;
 import java.util.UUID;

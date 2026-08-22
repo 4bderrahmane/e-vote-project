@@ -1,7 +1,7 @@
 package org.privote.backend.mapper;
 
 import org.privote.backend.dto.citizen.CitizenSyncRequest;
-import org.privote.backend.entity.Citizen;
+import org.privote.backend.entity.identity.Citizen;
 
 public interface CitizenMapper
 {

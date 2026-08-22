@@ -1,6 +1,6 @@
 package org.privote.backend.repository;
 
-import org.privote.backend.entity.Citizen;
+import org.privote.backend.entity.identity.Citizen;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

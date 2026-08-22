@@ -1,7 +1,7 @@
 package org.privote.backend.service;
 
 import lombok.RequiredArgsConstructor;
-import org.privote.backend.entity.Election;
+import org.privote.backend.entity.election.Election;
 import org.privote.backend.entity.enums.CandidateStatus;
 import org.privote.backend.entity.enums.ElectionPhase;
 import org.privote.backend.exception.BusinessConflictException;

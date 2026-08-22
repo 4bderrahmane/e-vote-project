@@ -1,6 +1,6 @@
 package org.privote.backend.repository;
 
-import org.privote.backend.entity.Ballot;
+import org.privote.backend.entity.voting.Ballot;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -4,7 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.privote.backend.dto.citizen.CitizenSelfUpdateRequest;
 import org.privote.backend.dto.citizen.CitizenSyncRequest;
-import org.privote.backend.entity.Citizen;
+import org.privote.backend.entity.identity.Citizen;
 import org.privote.backend.exception.BusinessConflictException;
 import org.privote.backend.exception.RequestValidationException;
 import org.privote.backend.exception.ResourceNotFoundException;

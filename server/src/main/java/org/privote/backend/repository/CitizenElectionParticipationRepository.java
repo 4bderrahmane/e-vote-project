@@ -1,6 +1,6 @@
 package org.privote.backend.repository;
 
-import org.privote.backend.entity.CitizenElectionParticipation;
+import org.privote.backend.entity.identity.CitizenElectionParticipation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

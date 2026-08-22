@@ -2,7 +2,7 @@ package org.privote.backend.web3.listener;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.privote.backend.entity.Election;
+import org.privote.backend.entity.election.Election;
 import org.privote.backend.repository.ElectionRepository;
 import org.privote.backend.web3.config.Web3jProperties;
 import org.privote.backend.web3.listener.cursor.Cursor;

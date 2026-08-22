@@ -1,7 +1,7 @@
 package org.privote.backend.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.privote.backend.entity.Citizen;
+import org.privote.backend.entity.identity.Citizen;
 import org.privote.backend.service.CitizenService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
